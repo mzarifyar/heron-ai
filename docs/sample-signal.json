@@ -1,0 +1,30 @@
+{
+  "source": "t2-metrics-collector",
+  "context": {
+    "service": "payments-api",
+    "tier": "backend",
+    "environment": "prod",
+    "region": "phx",
+    "component": "ingest-worker",
+    "labels": {
+      "team": "reliability"
+    }
+  },
+  "signals": [
+    {
+      "signal_id": "sig-sample-001",
+      "type": "metric",
+      "detected_at": "2024-03-11T20:00:00Z",
+      "metric": {
+        "value": 95.2,
+        "unit": "percent",
+        "window_seconds": 60
+      },
+      "summary": "CPU utilization above policy threshold",
+      "details": {
+        "threshold": 90,
+        "observed_series": [72.4, 81.0, 95.2]
+      }
+    }
+  ]
+}

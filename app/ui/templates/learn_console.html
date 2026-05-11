@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Cortex Learn Console{% endblock %}
+{% block header_title %}Cortex Learn Console{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Learn and Action Effectiveness</h3>
+        <div class="muted small">Advisory-only learning from verification outcomes. Policies still remain the authority.</div>
+      </div>
+      <button id="btn-refresh-learn" type="button">Refresh</button>
+    </div>
+    <div class="split-2">
+      <div class="panel">
+        <h4 class="section-heading">Summary</h4>
+        <table class="grid"><tbody id="learn-summary-body"></tbody></table>
+      </div>
+      <div class="panel">
+        <h4 class="section-heading">Filters</h4>
+        <div class="row">
+          <label class="grow">
+            <div class="field-label">Service <span class="info-dot" title="Optional service scope, for example payments-api.">i</span></div>
+            <input id="learn-filter-service" type="text" placeholder="payments-api">
+          </label>
+          <label class="grow">
+            <div class="field-label">Severity <span class="info-dot" title="Optional severity scope, for example sev2.">i</span></div>
+            <input id="learn-filter-severity" type="text" placeholder="sev2">
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="split-2">
+      <div class="panel">
+        <h4 class="section-heading">Global Action Ranking</h4>
+        <table class="grid">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Action</th>
+              <th>Total</th>
+              <th>Success</th>
+              <th>Success Rate</th>
+            </tr>
+          </thead>
+          <tbody id="learn-global-body"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h4 class="section-heading">Scoped Action Ranking</h4>
+        <table class="grid">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Service</th>
+              <th>Severity</th>
+              <th>Action</th>
+              <th>Total</th>
+              <th>Success</th>
+              <th>Success Rate</th>
+            </tr>
+          </thead>
+          <tbody id="learn-scoped-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script>
+    const { getJson, renderKeyValueRows, runButtonAction, escapeHtml } = window.CortexUI;
+
+    function renderRows(targetId, items, scoped) {
+      const body = document.getElementById(targetId);
+      if (!body) return;
+      body.innerHTML = "";
+      const rows = Array.isArray(items) ? items : [];
+      if (rows.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="${scoped ? 7 : 5}" class="muted">No data yet</td>`;
+        body.appendChild(tr);
+        return;
+      }
+      let index = 0;
+      for (const row of rows) {
+        index += 1;
+        const tr = document.createElement("tr");
+        if (scoped) {
+          tr.innerHTML =
+            `<td>${index}</td><td>${escapeHtml(row.service || "")}</td><td>${escapeHtml(row.severity || "")}</td>` +
+            `<td>${escapeHtml(row.action || "")}</td><td>${Number(row.total || 0)}</td>` +
+            `<td>${Number(row.success || 0)}</td><td>${Number(row.success_rate || 0).toFixed(2)}</td>`;
+        } else {
+          tr.innerHTML =
+            `<td>${index}</td><td>${escapeHtml(row.action || "")}</td><td>${Number(row.total || 0)}</td>` +
+            `<td>${Number(row.success || 0)}</td><td>${Number(row.success_rate || 0).toFixed(2)}</td>`;
+        }
+        body.appendChild(tr);
+      }
+    }
+
+    async function refreshLearn() {
+      const service = (document.getElementById("learn-filter-service").value || "").trim();
+      const severity = (document.getElementById("learn-filter-severity").value || "").trim();
+      const query = new URLSearchParams();
+      if (service) query.set("service", service);
+      if (severity) query.set("severity", severity);
+
+      const [summary, recommendations] = await Promise.all([
+        getJson("/api/v1/ops/learn/summary"),
+        getJson("/api/v1/ops/learn/recommendations?" + query.toString()),
+      ]);
+
+      renderKeyValueRows("learn-summary-body", [
+        ["Last Updated (UTC)", summary.updated_at || "n/a"],
+        ["Actions Tracked", summary.actions_tracked || 0],
+        ["Scopes Tracked", summary.scopes_tracked || 0],
+        ["Min Samples", summary.min_samples || 0],
+      ]);
+      renderRows("learn-global-body", recommendations.global || [], false);
+      renderRows("learn-scoped-body", recommendations.scoped || [], true);
+    }
+
+    document.getElementById("btn-refresh-learn").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshLearn, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("learn-filter-service").addEventListener("change", refreshLearn);
+    document.getElementById("learn-filter-severity").addEventListener("change", refreshLearn);
+    refreshLearn();
+  </script>
+{% endblock %}

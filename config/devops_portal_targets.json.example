@@ -1,0 +1,30 @@
+{
+  "targets": [
+    {
+      "name": "us-east-1-prod",
+      "enabled": true,
+      "region": "us-east-1",
+      "account_id": "123456789012",
+      "environment": "prod",
+      "service": "alert-source",
+      "tier": "platform",
+      "labels": {
+        "source": "alert_source",
+        "team": "oncall"
+      }
+    },
+    {
+      "name": "us-west-2-stage",
+      "enabled": false,
+      "region": "us-west-2",
+      "account_id": "987654321098",
+      "environment": "stage",
+      "service": "alert-source",
+      "tier": "platform",
+      "labels": {
+        "source": "alert_source",
+        "team": "sre"
+      }
+    }
+  ]
+}

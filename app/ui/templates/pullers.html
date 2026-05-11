@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+{% block title %}Cortex Pullers Dashboard{% endblock %}
+{% block header_title %}Cortex Pullers{% endblock %}
+{% block content %}
+  <style>
+    .ticket-project-tab {
+      color: #193c5f;
+      border: 1px solid var(--border);
+      background: #ffffff;
+    }
+
+    .ticket-project-tab.is-active {
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 8px 16px rgba(15, 36, 56, 0.18);
+    }
+
+    .ticket-project-tab.project-oda.is-active {
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    }
+
+    .ticket-project-tab.project-cda.is-active {
+      background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+    }
+
+    .ticket-project-tab.project-cortex.is-active {
+      background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);
+    }
+  </style>
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Pullers Dashboard</h3>
+        <div class="muted small">Local visibility for scheduler runs and Jira ticket ingestion.</div>
+      </div>
+    </div>
+    <div class="row">
+      <button id="refresh-btn" type="button">Refresh</button>
+      <button id="run-jira-btn" type="button">Run Jira Now</button>
+      <button id="run-devops-btn" type="button">Run DevOps Now</button>
+      <button id="run-hygiene-btn" type="button">Run Housekeeping Now</button>
+    </div>
+    <div class="split-2">
+      <div class="panel grow">
+        <details>
+          <summary><strong>Scheduler</strong></summary>
+          <table class="grid top-gap-8">
+            <tbody id="scheduler-body"></tbody>
+          </table>
+        </details>
+      </div>
+      <div class="panel grow">
+        <details>
+          <summary><strong>Cursors</strong></summary>
+          <table class="grid top-gap-8">
+            <tbody id="cursors-body"></tbody>
+          </table>
+        </details>
+      </div>
+    </div>
+    <details>
+      <summary><strong>Recent Puller Runs</strong></summary>
+      <div class="summary-wrap">
+        <table class="grid">
+          <thead>
+            <tr>
+              <th><span class="field-label">When</span></th>
+              <th><span class="field-label">Source</span></th>
+              <th><span class="field-label">Status</span></th>
+              <th><span class="field-label">Reason</span></th>
+              <th><span class="field-label">Duration</span></th>
+              <th><span class="field-label">Summary</span></th>
+            </tr>
+          </thead>
+          <tbody id="runs-body"></tbody>
+        </table>
+      </div>
+    </details>
+    <div class="panel">
+      <div class="row">
+        <div class="grow">
+          <h4 class="section-heading">Latest Cluster Hygiene Report</h4>
+          <div class="muted small">Pods not in Running/Completed across configured clusters.</div>
+        </div>
+      </div>
+      <table class="grid top-gap-8">
+        <tbody id="cluster-hygiene-summary-body"></tbody>
+      </table>
+      <details class="top-gap-8">
+        <summary><strong>Cluster Findings</strong></summary>
+        <div class="summary-wrap">
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cluster</th>
+                <th>Namespace</th>
+                <th>Pod</th>
+                <th>Status</th>
+                <th>Phase</th>
+                <th>Reason</th>
+                <th>Node</th>
+                <th>Restarts</th>
+              </tr>
+            </thead>
+            <tbody id="cluster-hygiene-findings-body"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+    <div>
+      <h4 class="section-heading">Ingested Jira Tickets</h4>
+      <div class="row top-gap-8">
+        <button id="tickets-tab-oda" class="ticket-project-tab project-oda" type="button">ODA</button>
+        <button id="tickets-tab-cda" class="ticket-project-tab project-cda" type="button">CDA</button>
+        <button id="tickets-tab-cortex" class="ticket-project-tab project-cortex" type="button">Cortex</button>
+      </div>
+      <table class="grid">
+        <thead>
+          <tr>
+            <th><span class="field-label">#</span></th>
+            <th></th>
+            <th><button type="button" data-sort-by="ticket_number"><span class="field-label">Ticket</span></button></th>
+            <th><span class="field-label">Ticket Status</span></th>
+            <th><button type="button" data-sort-by="last_seen_at"><span class="field-label">Last Seen</span></button></th>
+            <th><button type="button" data-sort-by="group"><span class="field-label">Group</span></button></th>
+            <th><button type="button" data-sort-by="summary"><span class="field-label">Summary</span></button></th>
+          </tr>
+        </thead>
+        <tbody id="tickets-body"></tbody>
+      </table>
+      <div class="row top-gap-8">
+        <button id="tickets-prev-btn" type="button">Prev</button>
+        <button id="tickets-next-btn" type="button">Next</button>
+        <span id="tickets-page-label" class="small muted">Page 1 / 1</span>
+      </div>
+    </div>
+  </div>
+  <script>
+    const statusUrl = "{{ status_url }}";
+    const cursorsUrl = "{{ cursors_url }}";
+    const runsUrl = "{{ runs_url }}";
+    const ticketsUrl = "{{ tickets_url }}";
+    const clusterHygieneLatestUrl = "{{ cluster_hygiene_latest_url }}";
+    const jiraBrowseBaseUrl = "{{ jira_browse_base_url }}";
+    const ticketsPageSize = 100;
+    const { getJson, escapeHtml, renderKeyValueRows, runButtonAction } = window.CortexUI;
+
+    let ticketsPage = 1;
+    let ticketsTotalPages = 1;
+    let ticketsProject = "ODA";
+    let ticketsSortBy = "last_seen_at";
+    let ticketsSortDir = "desc";
+
+    function updateProjectTabState() {
+      const odaBtn = document.getElementById("tickets-tab-oda");
+      const cdaBtn = document.getElementById("tickets-tab-cda");
+      const cortexBtn = document.getElementById("tickets-tab-cortex");
+      if (odaBtn) {
+        const isActive = ticketsProject === "ODA";
+        odaBtn.classList.toggle("is-active", isActive);
+        odaBtn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      }
+      if (cdaBtn) {
+        const isActive = ticketsProject === "CDA";
+        cdaBtn.classList.toggle("is-active", isActive);
+        cdaBtn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      }
+      if (cortexBtn) {
+        const isActive = ticketsProject === "CORTEX";
+        cortexBtn.classList.toggle("is-active", isActive);
+        cortexBtn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      }
+    }
+
+    function renderRuns(items) {
+      const body = document.getElementById("runs-body");
+      body.innerHTML = "";
+      for (const row of items || []) {
+        const summary = row.summary || {};
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.completed_at || ""}</td>
+          <td>${row.source || ""}</td>
+          <td>${row.status || ""}</td>
+          <td>${row.reason || ""}</td>
+          <td>${row.duration_ms || 0}ms</td>
+          <td>
+            fetched: ${summary.fetched ?? "-"} |
+            upserted: ${summary.upserted ?? "-"} |
+            errors: ${(summary.errors || []).length}
+          </td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderClusterHygiene(report) {
+      const summaryBody = document.getElementById("cluster-hygiene-summary-body");
+      const findingsBody = document.getElementById("cluster-hygiene-findings-body");
+      const run = report?.run || null;
+      const findings = report?.findings || [];
+      if (!run) {
+        renderKeyValueRows("cluster-hygiene-summary-body", [["Latest Run", "No report yet"]]);
+        findingsBody.innerHTML = '<tr><td colspan="9" class="muted">No findings yet</td></tr>';
+        return;
+      }
+      const summary = run.summary || {};
+      renderKeyValueRows("cluster-hygiene-summary-body", [
+        ["Run ID", run.id || ""],
+        ["Status", run.status || ""],
+        ["Reason", run.reason || ""],
+        ["Completed At", run.completed_at || ""],
+        ["Duration", `${run.duration_ms || 0}ms`],
+        ["Targets", summary.targets_total ?? 0],
+        ["Clusters Polled", summary.clusters_polled ?? 0],
+        ["Clusters With Findings", summary.clusters_with_findings ?? 0],
+        ["Pods Checked", summary.pods_total ?? 0],
+        ["Findings", summary.findings_total ?? 0],
+        ["Cleanup Actions Executed", summary.cleanup_actions_executed ?? 0],
+        ["Cleanup Actions Failed", summary.cleanup_actions_failed ?? 0],
+      ]);
+      findingsBody.innerHTML = "";
+      if (!findings.length) {
+        findingsBody.innerHTML = '<tr><td colspan="9" class="muted">No unhealthy pods in the latest run</td></tr>';
+        return;
+      }
+      let idx = 0;
+      for (const row of findings) {
+        idx += 1;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx}</td>
+          <td>${escapeHtml(row.cluster_display_name || row.cluster_name || "")}</td>
+          <td>${escapeHtml(row.namespace || "")}</td>
+          <td class="no-wrap-cell">${escapeHtml(row.pod_name || "")}</td>
+          <td>${escapeHtml(row.status || "")}</td>
+          <td>${escapeHtml(row.phase || "")}</td>
+          <td>${escapeHtml(row.reason || "")}</td>
+          <td>${escapeHtml(row.node_name || "")}</td>
+          <td>${Number(row.restart_count || 0)}</td>
+        `;
+        findingsBody.appendChild(tr);
+      }
+    }
+
+    function compactTicket(row, issueUrl) {
+      const context = row.context || {};
+      const enrichment = context.enrichment || {};
+      const jira = enrichment.jira || {};
+      return {
+        ticket_key: row.ticket_key || "",
+        jira_url: issueUrl || "",
+        ingest_status: row.ingest_status || "",
+        group: row.group || "unmapped",
+        summary: row.summary || "",
+        location: {
+          airport_code: context.airport_code || "",
+          realm: context.realm || "",
+          environment: context.environment || "",
+          cluster: context.cluster || "",
+        },
+        message: context.message || "",
+        jira: {
+          status: row.ticket_status || jira.status || enrichment.status_before || "",
+          status_category: jira.status_category || "",
+          priority: jira.priority || "",
+          assignee: jira.assignee || "",
+          reporter: jira.reporter || "",
+          project_key: jira.project_key || "",
+          issue_type: jira.issue_type || "",
+          created_utc: enrichment.created_utc || "",
+          updated_utc: jira.updated_utc || "",
+        },
+        alarm: {
+          alarm_region: enrichment.alarm_region || "",
+          alarm_id: enrichment.alarm_id || "",
+          alarm_status: enrichment.alarm_status || "",
+          alarm_status_since: enrichment.alarm_status_since || null,
+        },
+        runbook: {
+          runbook_id: enrichment.runbook_id || "",
+          source: (enrichment.runbook_resolution || {}).source || "",
+          confidence: (enrichment.runbook_resolution || {}).confidence || "",
+        },
+        alert_mitigation: {
+          title: (enrichment.alert_specific_mitigation || {}).title || "",
+          intent: (enrichment.alert_specific_mitigation || {}).intent || "",
+          steps: (enrichment.alert_specific_mitigation || {}).steps || [],
+          source: (enrichment.alert_specific_mitigation || {}).source || "",
+        },
+        diagnostics: {
+          title: (enrichment.diagnostics_preview || {}).title || "",
+          intent: (enrichment.diagnostics_preview || {}).intent || "",
+          steps: (enrichment.diagnostics_preview || {}).steps || [],
+          execution_mode: (enrichment.diagnostics_preview || {}).execution_mode || "preview_only",
+        },
+      };
+    }
+
+    function renderTickets(items, page) {
+      const body = document.getElementById("tickets-body");
+      body.innerHTML = "";
+      let idx = (Math.max(page, 1) - 1) * ticketsPageSize;
+      for (const row of items || []) {
+        idx += 1;
+        const key = row.ticket_key || "";
+        const issueUrl = row.jira_url || (key ? `${jiraBrowseBaseUrl}/browse/${key}` : "");
+        const ticketCell = issueUrl ? `<a href="${issueUrl}" target="_blank" rel="noopener noreferrer">${key}</a>` : key;
+        const compact = compactTicket(row, issueUrl);
+        const locationLine = [compact.location.airport_code, compact.location.realm, compact.location.environment, compact.location.cluster].filter(Boolean).join(" | ");
+        const labels = (row.labels || []).join(", ") || "none";
+        const jiraLine = [
+          `Status: ${compact.jira.status || "n/a"}`,
+          `Priority: ${compact.jira.priority || "n/a"}`,
+          `Assignee: ${compact.jira.assignee || "unassigned"}`,
+          `Reporter: ${compact.jira.reporter || "n/a"}`,
+        ].join(" | ");
+        const alarmLine = [
+          `Region: ${compact.alarm.alarm_region || "n/a"}`,
+          `Alarm ID: ${compact.alarm.alarm_id || "n/a"}`,
+          `Alarm Status: ${compact.alarm.alarm_status || "n/a"}`,
+        ].join(" | ");
+        const runbookLine = [
+          `Runbook: ${compact.runbook.runbook_id || "unresolved"}`,
+          `Resolver: ${compact.runbook.source || "n/a"}`,
+          `Confidence: ${compact.runbook.confidence || "n/a"}`,
+        ].join(" | ");
+        const alertMitigationSteps = (compact.alert_mitigation.steps || [])
+          .slice(0, 8)
+          .map((step, index) => `${index + 1}. ${step}`)
+          .join("\n");
+        const ticketStatus = compact.jira.status || "n/a";
+        const diagnosticsSteps = (compact.diagnostics.steps || [])
+          .slice(0, 8)
+          .map((step, index) => `${index + 1}. ${step}`)
+          .join("\n");
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx}</td>
+          <td class="details-toggle-cell">
+            <details class="details-popup-anchor">
+              <summary title="Toggle details"></summary>
+              <div class="panel details-popup">
+                <div><strong>Location</strong></div>
+                <div class="small">${escapeHtml(locationLine || "n/a")}</div>
+                <div class="field-gap"><strong>Jira</strong></div>
+                <div class="small">${escapeHtml(jiraLine)}</div>
+                <div class="field-gap"><strong>Alarm</strong></div>
+                <div class="small">${escapeHtml(alarmLine)}</div>
+                <div class="field-gap"><strong>Message</strong></div>
+                <div class="small no-wrap-cell">${escapeHtml(compact.message || "n/a")}</div>
+                <div class="field-gap"><strong>Runbook Resolution</strong></div>
+                <div class="small">${escapeHtml(runbookLine)}</div>
+                <div class="field-gap"><strong>Alert-Specific Mitigation</strong></div>
+                <div class="small"><strong>${escapeHtml(compact.alert_mitigation.title || "Not available for this alert")}</strong></div>
+                <div class="small">${escapeHtml(compact.alert_mitigation.intent || "Using general diagnostics guidance.")}</div>
+                <pre class="code top-gap-8" style="display:block;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word; padding:8px; margin:0;">${escapeHtml(alertMitigationSteps || "No alert-specific mitigation steps found.")}</pre>
+                <div class="field-gap"><strong>Diagnostics Preview</strong></div>
+                <div class="small"><strong>${escapeHtml(compact.diagnostics.title || "Generic Alert Diagnostics")}</strong></div>
+                <div class="small">${escapeHtml(compact.diagnostics.intent || "n/a")}</div>
+                <pre class="code top-gap-8" style="display:block;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word; padding:8px; margin:0;">${escapeHtml(diagnosticsSteps || "No steps")}</pre>
+                <div class="small top-gap-8">Mode: ${escapeHtml(compact.diagnostics.execution_mode || "preview_only")}</div>
+                <div class="field-gap"><strong>Labels</strong></div>
+                <div class="small">${escapeHtml(labels)}</div>
+                <div class="field-gap"><strong>First Seen</strong></div>
+                <div class="small">${escapeHtml(row.first_seen_at || "n/a")}</div>
+              </div>
+            </details>
+          </td>
+          <td>${ticketCell}</td>
+          <td>${escapeHtml(ticketStatus)}</td>
+          <td>${row.last_seen_at || ""}</td>
+          <td>${row.group || "unmapped"}</td>
+          <td class="no-wrap-cell">${row.summary || ""}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function updateSortHeaderState() {
+      document.querySelectorAll("button[data-sort-by]").forEach((btn) => {
+        const key = btn.getAttribute("data-sort-by");
+        const marker = key === ticketsSortBy ? (ticketsSortDir === "asc" ? " ↑" : " ↓") : "";
+        btn.textContent = btn.textContent.replace(/ [↑↓]$/, "") + marker;
+      });
+    }
+
+    async function loadTickets(page) {
+      const current = Math.max(1, page || 1);
+      const payload = await getJson(
+        `${ticketsUrl}?page=${current}&project=${encodeURIComponent(ticketsProject)}&sort_by=${encodeURIComponent(ticketsSortBy)}&sort_dir=${encodeURIComponent(ticketsSortDir)}`
+      );
+      ticketsPage = payload.page || current;
+      ticketsTotalPages = payload.total_pages || 1;
+      renderTickets(payload.items, ticketsPage);
+      updateSortHeaderState();
+      updateProjectTabState();
+
+      const label = document.getElementById("tickets-page-label");
+      if (label) {
+        label.textContent = `${ticketsProject} • Page ${ticketsPage} / ${ticketsTotalPages}`;
+      }
+      const prev = document.getElementById("tickets-prev-btn");
+      const next = document.getElementById("tickets-next-btn");
+      if (prev) {
+        prev.disabled = ticketsPage <= 1;
+      }
+      if (next) {
+        next.disabled = ticketsPage >= ticketsTotalPages;
+      }
+    }
+
+    async function refresh() {
+      try {
+        const [status, cursors, runs] = await Promise.all([
+          getJson(statusUrl),
+          getJson(cursorsUrl),
+          getJson(runsUrl),
+        ]);
+        const clusterHygiene = await getJson(clusterHygieneLatestUrl);
+        const jira = (status.sources || []).find((s) => s.source === "jira") || {};
+        const devops = (status.sources || []).find((s) => s.source === "devops_portal") || {};
+        const hygiene = (status.sources || []).find((s) => s.source === "cluster_hygiene") || {};
+        renderKeyValueRows("scheduler-body", [
+          ["Enabled", status.scheduler?.enabled ?? false],
+          ["Running", status.scheduler?.running ?? false],
+          ["Jira Enabled", jira.enabled ?? false],
+          ["Jira Last Status", jira.last_status || "never"],
+          ["Jira Last Run", jira.last_run_at || "n/a"],
+          ["Jira Next Run", jira.next_run_at || "n/a"],
+          ["Jira Last Duration (ms)", jira.last_duration_ms ?? "n/a"],
+          ["DevOps Enabled", devops.enabled ?? false],
+          ["DevOps Last Status", devops.last_status || "never"],
+          ["DevOps Last Run", devops.last_run_at || "n/a"],
+          ["DevOps Next Run", devops.next_run_at || "n/a"],
+          ["DevOps Last Duration (ms)", devops.last_duration_ms ?? "n/a"],
+          ["Hygiene Enabled", hygiene.enabled ?? false],
+          ["Hygiene Last Status", hygiene.last_status || "never"],
+          ["Hygiene Last Run", hygiene.last_run_at || "n/a"],
+          ["Hygiene Next Run", hygiene.next_run_at || "n/a"],
+          ["Hygiene Last Duration (ms)", hygiene.last_duration_ms ?? "n/a"],
+        ]);
+        const cursorSources = cursors.sources || {};
+        const cursorRows = Object.keys(cursorSources).length
+          ? Object.entries(cursorSources).map(([source, value]) => [source, value.last_run_utc || "n/a"])
+          : [["No cursors", "n/a"]];
+        renderKeyValueRows("cursors-body", cursorRows);
+        renderRuns(runs.items);
+        renderClusterHygiene(clusterHygiene);
+        await loadTickets(ticketsPage);
+      } catch (error) {
+        renderKeyValueRows("scheduler-body", [["Error", String(error)]]);
+      }
+    }
+
+    document.getElementById("refresh-btn").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refresh, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("run-jira-btn").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        await getJson("/api/v1/pullers/run-now?source=jira", { method: "POST" });
+        await refresh();
+      }, { pendingText: "Running Jira..." });
+    });
+    document.getElementById("run-devops-btn").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        await getJson("/api/v1/pullers/run-now?source=devops_portal", { method: "POST" });
+        await refresh();
+      }, { pendingText: "Running DevOps..." });
+    });
+    document.getElementById("run-hygiene-btn").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        await getJson("/api/v1/pullers/run-now?source=cluster_hygiene", { method: "POST" });
+        await refresh();
+      }, { pendingText: "Running Housekeeping..." });
+    });
+    document.getElementById("tickets-prev-btn").addEventListener("click", async (event) => {
+      if (ticketsPage > 1) {
+        await runButtonAction(event.currentTarget, async () => {
+          await loadTickets(ticketsPage - 1);
+        }, { pendingText: "Loading..." });
+      }
+    });
+    document.getElementById("tickets-next-btn").addEventListener("click", async (event) => {
+      if (ticketsPage < ticketsTotalPages) {
+        await runButtonAction(event.currentTarget, async () => {
+          await loadTickets(ticketsPage + 1);
+        }, { pendingText: "Loading..." });
+      }
+    });
+    document.getElementById("tickets-tab-oda").addEventListener("click", async () => {
+      ticketsProject = "ODA";
+      ticketsPage = 1;
+      await loadTickets(1);
+    });
+    document.getElementById("tickets-tab-cda").addEventListener("click", async () => {
+      ticketsProject = "CDA";
+      ticketsPage = 1;
+      await loadTickets(1);
+    });
+    document.getElementById("tickets-tab-cortex").addEventListener("click", async () => {
+      ticketsProject = "CORTEX";
+      ticketsPage = 1;
+      await loadTickets(1);
+    });
+    document.querySelectorAll("button[data-sort-by]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const requested = btn.getAttribute("data-sort-by") || "last_seen_at";
+        if (ticketsSortBy === requested) {
+          ticketsSortDir = ticketsSortDir === "asc" ? "desc" : "asc";
+        } else {
+          ticketsSortBy = requested;
+          ticketsSortDir = requested === "ticket_number" ? "desc" : "asc";
+        }
+        ticketsPage = 1;
+        await loadTickets(1);
+      });
+    });
+    refresh();
+  </script>
+{% endblock %}

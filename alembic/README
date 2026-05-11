@@ -1,0 +1,10 @@
+Alembic migration environment for Cortex-AI.
+
+Quick start:
+  alembic upgrade head        # apply all migrations
+  alembic revision --autogenerate -m "description"  # create new migration
+  alembic downgrade -1        # roll back one migration
+  alembic history             # show migration history
+
+DATABASE_URL defaults to sqlite:///./data/cortex.db.
+Set DATABASE_URL=postgresql://user:pass@host/db for PostgreSQL.

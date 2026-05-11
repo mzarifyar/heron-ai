@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Cortex Chronicle{% endblock %}</title>
+  <link rel="icon" type="image/jpeg" href="/static/cortex-logo.jpeg?v=20260422b">
+  <link rel="shortcut icon" type="image/jpeg" href="/static/cortex-logo.jpeg?v=20260422b">
+  <link rel="apple-touch-icon" href="/static/cortex-logo.jpeg?v=20260422b">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/ui-common.css?v=20260424a">
+  <script src="/static/ui-common.js?v=20260424a"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="panel shell-header">
+      <div class="row">
+        <div class="grow">
+          <h2 class="brand-title">
+            <img src="/static/cortex-logo.jpeg?v=20260422b" alt="Cortex-AI logo" class="brand-mark">
+            <span>{% block header_title %}Cortex Chronicle{% endblock %}</span>
+          </h2>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="Primary">
+        <div class="top-nav-group">
+          <span class="top-nav-label">Core</span>
+          <a href="/camc" data-nav="/camc">Home</a>
+          <a href="/chronicle" data-nav="/chronicle">Chronicle</a>
+          <a href="/docs-ui" data-nav="/docs-ui">Docs</a>
+        </div>
+        <div class="top-nav-group">
+          <span class="top-nav-label">Pipeline</span>
+          <a href="/pullers" data-nav="/pullers">Pullers</a>
+          <a href="/ops/pullers/targets" data-nav="/ops/pullers/targets">Targets</a>
+          <a href="/ops/cluster-targets" data-nav="/ops/cluster-targets">Cluster Targets</a>
+          <a href="/ops/cluster-access" data-nav="/ops/cluster-access">Cluster Access</a>
+          <a href="/ops/devops" data-nav="/ops/devops">DevOps</a>
+          <a href="/ops/jira/queries" data-nav="/ops/jira/queries">Jira Queries</a>
+          <a href="/jira-auth" data-nav="/jira-auth">Jira Auth</a>
+        </div>
+        <div class="top-nav-group">
+          <span class="top-nav-label">Signals</span>
+          <a href="/sense" data-nav="/sense">Sense</a>
+          <a href="/explain" data-nav="/explain">Explain</a>
+          <a href="/jobs" data-nav="/jobs">Jobs</a>
+          <a href="/ops/guard" data-nav="/ops/guard">Guard</a>
+          <a href="/ops/runtime" data-nav="/ops/runtime">Runtime</a>
+        </div>
+        <div class="top-nav-group">
+          <span class="top-nav-label">Governance</span>
+          <a href="/ops/config" data-nav="/ops/config">Config</a>
+          <a href="/ops/control-plane" data-nav="/ops/control-plane">Control Plane</a>
+          <a href="/ops/learn" data-nav="/ops/learn">Learn</a>
+          <a href="/ops/escalation" data-nav="/ops/escalation">Escalation</a>
+        </div>
+      </nav>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+    <script>
+      (function () {
+        const path = window.location.pathname;
+        const tabs = Array.from(document.querySelectorAll(".top-nav a[data-nav]"));
+        for (const tab of tabs) {
+          const route = tab.getAttribute("data-nav");
+          if (!route) continue;
+          const exactRoot = route === "/" && (path === "/" || path === "");
+          const prefix = route !== "/" && path.startsWith(route);
+          if (exactRoot || prefix) {
+            tab.classList.add("active");
+          }
+        }
+      })();
+    </script>
+  </div>
+</body>
+</html>

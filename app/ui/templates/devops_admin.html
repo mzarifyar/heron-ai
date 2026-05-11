@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Cortex DevOps Admin{% endblock %}
+{% block header_title %}Cortex DevOps Admin{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">DevOps Puller Admin</h3>
+        <div class="muted small">End-to-end setup and operation without shell commands.</div>
+      </div>
+      <button id="btn-refresh-status" type="button">Refresh</button>
+    </div>
+
+    <div class="panel">
+      <h4 class="section-heading">Bootstrap Actions</h4>
+      <div class="row">
+        <button id="btn-refresh-token" type="button">Refresh Operator Token</button>
+        <button id="btn-discover-jira" type="button">Discover From Jira Tickets</button>
+        <button id="btn-apply-discovery" type="button">Apply Discovery To Targets</button>
+        <button id="btn-enable-devops" type="button">Enable DevOps Puller</button>
+        <button id="btn-run-devops" type="button">Run DevOps Now</button>
+      </div>
+    </div>
+
+    <div class="split-2">
+      <div class="panel">
+        <h4 class="section-heading">Operator Token</h4>
+        <table class="grid"><tbody id="token-body"></tbody></table>
+      </div>
+      <div class="panel">
+        <h4 class="section-heading">Puller Status</h4>
+        <table class="grid"><tbody id="puller-body"></tbody></table>
+      </div>
+    </div>
+
+    <details>
+      <summary><strong>Cursors</strong></summary>
+      <table class="grid top-gap-8"><tbody id="cursors-body"></tbody></table>
+    </details>
+
+    <details>
+      <summary><strong>Discovery Summary</strong></summary>
+      <table class="grid top-gap-8"><tbody id="discovery-body"></tbody></table>
+    </details>
+  </div>
+  <script>
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    let lastDiscovery = null;
+
+    async function refreshStatus() {
+      const status = await getJson("/api/v1/ops/devops-admin/status");
+      const token = status.operator_token || {};
+      const pullers = status.pullers_status || {};
+      const sources = pullers.sources || [];
+      const devops = sources.find((item) => item.source === "devops_portal") || {};
+      renderKeyValueRows("token-body", [
+        ["Has Token", token.has_token ?? false],
+        ["Source", token.source || "none"],
+        ["Expired", token.expired ?? false],
+        ["Expires At", token.expires_at_utc || "unknown"],
+        ["Store Path", token.store_path || ""],
+      ]);
+      renderKeyValueRows("puller-body", [
+        ["Scheduler Enabled", pullers.scheduler?.enabled ?? false],
+        ["Scheduler Running", pullers.scheduler?.running ?? false],
+        ["DevOps Enabled", devops.enabled ?? false],
+        ["Last Status", devops.last_status || "never"],
+        ["Last Run", devops.last_run_at || "n/a"],
+        ["Next Run", devops.next_run_at || "n/a"],
+      ]);
+      const cursors = status.pullers_cursors?.sources || {};
+      const rows = Object.entries(cursors).map(([key, value]) => [key, value.last_run_utc || "n/a"]);
+      renderKeyValueRows("cursors-body", rows.length ? rows : [["No cursors", "n/a"]]);
+    }
+
+    async function refreshToken() {
+      await getJson("/api/v1/ops/operator-token/refresh", { method: "POST" });
+      await refreshStatus();
+    }
+
+    async function discoverFromJira() {
+      lastDiscovery = await getJson("/api/v1/ops/devops-admin/discover-from-jira", { method: "POST" });
+      renderKeyValueRows("discovery-body", [
+        ["References Total", lastDiscovery.references_total ?? 0],
+        ["References With Alarm", lastDiscovery.references_with_alarm ?? 0],
+        ["Targets Total", lastDiscovery.targets_total ?? 0],
+        ["Discovery Errors", (lastDiscovery.errors || []).length],
+      ]);
+    }
+
+    async function applyDiscovery() {
+      await getJson("/api/v1/ops/devops-admin/apply-discovery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ merge_with_existing: true, include_unknown_accounts: false }),
+      });
+      await refreshStatus();
+      await discoverFromJira();
+    }
+
+    async function enableDevops() {
+      await getJson("/api/v1/ops/devops-admin/enable-puller", { method: "POST" });
+      await refreshStatus();
+    }
+
+    async function runDevopsNow() {
+      await getJson("/api/v1/ops/devops-admin/run-now", { method: "POST" });
+      await refreshStatus();
+    }
+
+    document.getElementById("btn-refresh-status").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshStatus, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("btn-refresh-token").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshToken, { pendingText: "Refreshing Token..." });
+    });
+    document.getElementById("btn-discover-jira").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, discoverFromJira, { pendingText: "Discovering..." });
+    });
+    document.getElementById("btn-apply-discovery").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, applyDiscovery, { pendingText: "Applying..." });
+    });
+    document.getElementById("btn-enable-devops").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, enableDevops, { pendingText: "Enabling..." });
+    });
+    document.getElementById("btn-run-devops").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, runDevopsNow, { pendingText: "Running..." });
+    });
+
+    refreshStatus().then(discoverFromJira).catch(async (error) => {
+      renderKeyValueRows("discovery-body", [["Error", String(error)]]);
+    });
+  </script>
+{% endblock %}

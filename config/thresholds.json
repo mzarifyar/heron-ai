@@ -1,0 +1,80 @@
+{
+  "_comment": "Thresholds per service per metric. Insight fires warn/critical anomalies when values cross these lines.",
+
+  "default": {
+    "cpu_utilization":     { "warn": 0.80, "critical": 0.92 },
+    "memory_utilization":  { "warn": 0.85, "critical": 0.95 },
+    "error_rate":          { "warn": 0.02, "critical": 0.05 },
+    "latency_p99_ms":      { "warn": 500,  "critical": 1500 },
+    "disk_utilization":    { "warn": 0.80, "critical": 0.92 },
+    "connection_pool_pct": { "warn": 80.0, "critical": 90.0 },
+    "request_rate_rps":    { "warn": 0,    "critical": 0    }
+  },
+
+  "api-gateway": {
+    "cpu_utilization":     { "warn": 0.75, "critical": 0.90 },
+    "error_rate":          { "warn": 0.01, "critical": 0.03 },
+    "latency_p99_ms":      { "warn": 300,  "critical": 1000 },
+    "connection_pool_pct": { "warn": 75.0, "critical": 88.0 }
+  },
+
+  "auth-service": {
+    "cpu_utilization":     { "warn": 0.70, "critical": 0.88 },
+    "memory_utilization":  { "warn": 0.80, "critical": 0.93 },
+    "error_rate":          { "warn": 0.005,"critical": 0.02 },
+    "latency_p99_ms":      { "warn": 200,  "critical": 800  },
+    "connection_pool_pct": { "warn": 78.0, "critical": 90.0 }
+  },
+
+  "payment-processor": {
+    "cpu_utilization":     { "warn": 0.70, "critical": 0.88 },
+    "memory_utilization":  { "warn": 0.78, "critical": 0.92 },
+    "error_rate":          { "warn": 0.01, "critical": 0.05 },
+    "latency_p99_ms":      { "warn": 400,  "critical": 1200 },
+    "connection_pool_pct": { "warn": 80.0, "critical": 92.0 }
+  },
+
+  "payments-api": {
+    "cpu_utilization":     { "warn": 0.80, "critical": 0.90 },
+    "error_rate":          { "warn": 0.01, "critical": 0.05 }
+  },
+
+  "checkout-service": {
+    "error_rate":          { "warn": 0.01, "critical": 0.04 },
+    "latency_p99_ms":      { "warn": 400,  "critical": 1200 },
+    "connection_pool_pct": { "warn": 75.0, "critical": 88.0 }
+  },
+
+  "recommendation-engine": {
+    "cpu_utilization":     { "warn": 0.82, "critical": 0.95 },
+    "memory_utilization":  { "warn": 0.82, "critical": 0.95 },
+    "latency_p99_ms":      { "warn": 1000, "critical": 3000 }
+  },
+
+  "search-service": {
+    "cpu_utilization":     { "warn": 0.78, "critical": 0.92 },
+    "disk_utilization":    { "warn": 0.75, "critical": 0.90 },
+    "latency_p99_ms":      { "warn": 350,  "critical": 1000 }
+  },
+
+  "data-pipeline": {
+    "cpu_utilization":     { "warn": 0.80, "critical": 0.95 },
+    "memory_utilization":  { "warn": 0.82, "critical": 0.95 },
+    "error_rate":          { "warn": 0.02, "critical": 0.08 }
+  },
+
+  "notification-service": {
+    "error_rate":          { "warn": 0.01, "critical": 0.04 },
+    "connection_pool_pct": { "warn": 85.0, "critical": 95.0 }
+  },
+
+  "user-profile": {
+    "error_rate":          { "warn": 0.005,"critical": 0.02 },
+    "latency_p99_ms":      { "warn": 250,  "critical": 800  }
+  },
+
+  "inventory-service": {
+    "error_rate":          { "warn": 0.01, "critical": 0.04 },
+    "connection_pool_pct": { "warn": 78.0, "critical": 90.0 }
+  }
+}

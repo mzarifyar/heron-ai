@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Cortex Jobs UI{% endblock %}
+{% block header_title %}Cortex Jobs{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <h3 class="section-title grow">Jobs / Alarm Check Console</h3>
+    </div>
+
+    <div class="panel stack">
+      <h4 class="section-title">Launch Alarm Verification Job</h4>
+      <label><span class="field-label">Alarm References <span class="info-dot" title="One alarm reference per line (alarm id, URL, or mock status).">i</span></span> <textarea id="alarm-refs" rows="5" placeholder="One alarm reference per line (alarm id, alarm URL, or mock://status/OK)"></textarea></label>
+      <div class="row">
+        <button id="btn-start-job" type="button">Start Job</button>
+        <button id="btn-retry-failures" type="button">Retry Failed References</button>
+      </div>
+      <table class="grid">
+        <tbody id="job-meta-body">
+          <tr><td colspan="2" class="muted small">No active job yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel stack">
+      <div class="row">
+        <h4 class="section-title grow">Job Results</h4>
+        <button id="btn-refresh-job" type="button">Refresh</button>
+      </div>
+      <table class="grid">
+        <thead><tr>
+          <th><span class="field-label">Reference</span></th>
+          <th><span class="field-label">Status</span></th>
+          <th><span class="field-label">Timestamp</span></th>
+          <th><span class="field-label">Age</span></th>
+          <th><span class="field-label">Error</span></th>
+        </tr></thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const startJobUrl = "{{ start_job_url }}";
+    const jobPrefix = "{{ job_url_prefix }}";
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    let activeJobId = "";
+    let lastResults = [];
+    let pollHandle = null;
+
+    function parseReferences() {
+      const raw = document.getElementById("alarm-refs").value || "";
+      return raw.split("\n").map((line) => line.trim()).filter(Boolean);
+    }
+
+    function renderResults(results) {
+      lastResults = (results || []).filter(Boolean);
+      const body = document.getElementById("results-body");
+      body.innerHTML = "";
+      for (const row of lastResults) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.reference || ""}</td>
+          <td>${row.status || ""}</td>
+          <td>${row.timestamp || ""}</td>
+          <td>${row.age || ""}</td>
+          <td>${row.error || ""}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    async function refreshJob() {
+      if (!activeJobId) return;
+      const job = await getJson(`${jobPrefix}/${activeJobId}`);
+      renderKeyValueRows("job-meta-body", [
+        ["Job ID", job.job_id || ""],
+        ["Status", job.status || ""],
+        ["Progress", job.progress ?? ""],
+        ["Created At", job.created_at || ""],
+      ]);
+      renderResults(job.results || []);
+      if (job.status === "completed" && pollHandle) {
+        clearInterval(pollHandle);
+        pollHandle = null;
+      }
+    }
+
+    async function startJob(references) {
+      if (!references.length) return alert("Enter at least one alarm reference.");
+      const payload = await getJson(startJobUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alarms: references }),
+      });
+      activeJobId = payload.job_id || "";
+      renderKeyValueRows("job-meta-body", [
+        ["Job ID", payload.job_id || ""],
+        ["Status", payload.status || "queued"],
+        ["Progress", payload.progress ?? "0"],
+        ["Created At", payload.created_at || ""],
+      ]);
+      if (pollHandle) clearInterval(pollHandle);
+      pollHandle = setInterval(refreshJob, 2000);
+      await refreshJob();
+    }
+
+    document.getElementById("btn-start-job").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        await startJob(parseReferences());
+      }, { pendingText: "Starting..." });
+    });
+
+    document.getElementById("btn-refresh-job").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshJob, { pendingText: "Refreshing..." });
+    });
+
+    document.getElementById("btn-retry-failures").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        const failed = lastResults.filter((row) => row.error).map((row) => row.reference).filter(Boolean);
+        if (!failed.length) return alert("No failed references to retry.");
+        document.getElementById("alarm-refs").value = failed.join("\n");
+        await startJob(failed);
+      }, { pendingText: "Retrying..." });
+    });
+  </script>
+{% endblock %}

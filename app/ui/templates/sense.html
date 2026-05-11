@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Cortex Sense UI{% endblock %}
+{% block header_title %}Cortex Sense{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <h3 class="section-title grow">Sense / Signals Operator Console</h3>
+    </div>
+
+    <div class="row">
+      <label><span class="field-label">Recent Limit <span class="info-dot" title="How many recent signals to fetch and render.">i</span></span> <input id="recent-limit" type="number" min="1" max="200" value="50"></label>
+      <button id="btn-refresh-signals" type="button">Refresh Signals</button>
+      <button id="btn-replay-selected" type="button">Replay Selected</button>
+    </div>
+
+    <table class="grid">
+      <thead>
+        <tr>
+          <th></th>
+          <th><span class="field-label">Signal ID</span></th>
+          <th><span class="field-label">Type</span></th>
+          <th><span class="field-label">Detected</span></th>
+          <th><span class="field-label">Service</span></th>
+          <th><span class="field-label">Env</span></th>
+          <th><span class="field-label">Region</span></th>
+          <th><span class="field-label">Summary</span></th>
+          <th><span class="field-label">Guard</span></th>
+        </tr>
+      </thead>
+      <tbody id="signals-body"></tbody>
+    </table>
+
+    <div class="panel stack">
+      <h4 class="section-title">Ingest Test Signal</h4>
+      <div class="row">
+        <label class="grow"><span class="field-label">Source <span class="info-dot" title="Producer name for the ingest payload source.">i</span></span> <input id="ingest-source" type="text" value="oncall-puller"></label>
+        <label class="grow"><span class="field-label">Service <span class="info-dot" title="Service name included in the signal context.">i</span></span> <input id="ingest-service" type="text" value="payments-api"></label>
+      </div>
+      <div class="row">
+        <label class="grow"><span class="field-label">Environment <span class="info-dot" title="Environment tag for the test signal.">i</span></span> <input id="ingest-env" type="text" value="prod"></label>
+        <label class="grow"><span class="field-label">Region <span class="info-dot" title="Region tag for the test signal.">i</span></span> <input id="ingest-region" type="text" value="phx"></label>
+      </div>
+      <div class="row">
+        <label class="grow"><span class="field-label">Signal Type <span class="info-dot" title="Classification of signal payload type.">i</span></span> <input id="ingest-type" type="text" value="event"></label>
+        <label class="grow"><span class="field-label">Summary <span class="info-dot" title="Human-readable summary sent with the signal.">i</span></span> <input id="ingest-summary" type="text" value="Synthetic operator test signal"></label>
+      </div>
+      <label><span class="field-label">Alarm URL <span class="info-dot" title="Alarm reference used by guard checks and enrichment.">i</span></span> <input id="ingest-alarm-url" type="text" value="mock://status/FIRING"></label>
+      <button id="btn-ingest-sample" type="button">Ingest Sample</button>
+      <table class="grid">
+        <tbody id="ingest-response-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const listUrl = "{{ list_url }}";
+    const ingestUrl = "{{ ingest_url }}";
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    let selectedSignal = null;
+
+    function currentFormPayload() {
+      const now = new Date().toISOString();
+      return {
+        source: (document.getElementById("ingest-source")?.value || "oncall-puller").trim(),
+        context: {
+          service: (document.getElementById("ingest-service")?.value || "payments-api").trim(),
+          tier: "backend",
+          environment: (document.getElementById("ingest-env")?.value || "prod").trim(),
+          region: (document.getElementById("ingest-region")?.value || "phx").trim(),
+          component: "api",
+          labels: {},
+        },
+        signals: [
+          {
+            signal_id: `sig-ui-${Date.now()}`,
+            type: (document.getElementById("ingest-type")?.value || "event").trim(),
+            detected_at: now,
+            summary: (document.getElementById("ingest-summary")?.value || "Synthetic operator test signal").trim(),
+            details: {
+              alarm_url: (document.getElementById("ingest-alarm-url")?.value || "mock://status/FIRING").trim(),
+              runbook: "operator-ui-test",
+            },
+          },
+        ],
+      };
+    }
+
+    function renderSignals(items) {
+      const body = document.getElementById("signals-body");
+      body.innerHTML = "";
+      for (const row of items || []) {
+        const ctx = row.context || {};
+        const annotations = row.annotations || {};
+        const tr = document.createElement("tr");
+        const guard = annotations.alarm_status || "";
+        tr.innerHTML = `
+          <td><input type="radio" name="signal-select"></td>
+          <td><span class="code">${row.signal_id || ""}</span></td>
+          <td>${row.type || ""}</td>
+          <td>${row.detected_at || ""}</td>
+          <td>${ctx.service || ""}</td>
+          <td>${ctx.environment || ""}</td>
+          <td>${ctx.region || ""}</td>
+          <td>${row.summary || ""}</td>
+          <td>${guard}</td>
+        `;
+        tr.querySelector('input[type="radio"]').addEventListener("change", () => {
+          selectedSignal = row;
+          const ctx = row.context || {};
+          document.getElementById("ingest-source").value = "oncall-puller";
+          document.getElementById("ingest-service").value = ctx.service || "";
+          document.getElementById("ingest-env").value = ctx.environment || "";
+          document.getElementById("ingest-region").value = ctx.region || "";
+          document.getElementById("ingest-type").value = row.type || "event";
+          document.getElementById("ingest-summary").value = `[Replay] ${row.summary || ""}`;
+          document.getElementById("ingest-alarm-url").value = (row.details || {}).alarm_url || "mock://status/FIRING";
+        });
+        body.appendChild(tr);
+      }
+    }
+
+    async function refreshSignals() {
+      const limit = document.getElementById("recent-limit").value || "50";
+      const payload = await getJson(`${listUrl}?limit=${encodeURIComponent(limit)}`);
+      renderSignals(payload.items || []);
+    }
+
+    async function ingestPayload(payload) {
+      const result = await getJson(ingestUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const incidents = (result.incident_ids || []).join(", ") || "none";
+      renderKeyValueRows("ingest-response-body", [
+        ["Accepted", result.accepted ?? 0],
+        ["Buffered", result.buffered ?? 0],
+        ["Dropped", result.dropped ?? 0],
+        ["Incidents", incidents],
+        ["Message", result.message || "ingest completed"],
+      ]);
+      await refreshSignals();
+    }
+
+    document.getElementById("btn-refresh-signals").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshSignals, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("btn-ingest-sample").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        await ingestPayload(currentFormPayload());
+      }, { pendingText: "Ingesting..." });
+    });
+    document.getElementById("btn-replay-selected").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        if (!selectedSignal) return alert("Select a signal first.");
+        const ctx = selectedSignal.context || {};
+        const payload = {
+          source: "oncall-puller",
+          context: ctx,
+          signals: [
+            {
+              signal_id: `sig-replay-${Date.now()}`,
+              type: selectedSignal.type || "event",
+              detected_at: new Date().toISOString(),
+              metric: selectedSignal.metric || null,
+              summary: `[Replay] ${selectedSignal.summary || ""}`,
+              details: selectedSignal.details || {},
+            },
+          ],
+        };
+        await ingestPayload(payload);
+      }, { pendingText: "Replaying..." });
+    });
+
+    renderKeyValueRows("ingest-response-body", [["Status", "Ready"]]);
+    refreshSignals().catch((error) => {
+      renderKeyValueRows("ingest-response-body", [["Error", String(error)]]);
+    });
+  </script>
+{% endblock %}

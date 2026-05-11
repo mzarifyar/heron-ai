@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Cortex Explain UI{% endblock %}
+{% block header_title %}Cortex Explain{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <h3 class="section-title grow">Explain / Audit Console</h3>
+    </div>
+
+    <div class="row">
+      <label><span class="field-label">Correlation ID <span class="info-dot" title="Optional correlation ID to filter a specific trace.">i</span></span> <input id="corr-id" type="text" placeholder="optional"></label>
+      <label><span class="field-label">Limit <span class="info-dot" title="Maximum number of events returned.">i</span></span> <input id="events-limit" type="number" min="1" max="1000" value="200"></label>
+      <button id="btn-refresh-events" type="button">Refresh Events</button>
+    </div>
+
+    <table class="grid">
+      <thead>
+        <tr>
+          <th><span class="field-label">Time</span></th>
+          <th><span class="field-label">Component</span></th>
+          <th><span class="field-label">Type</span></th>
+          <th><span class="field-label">Signal</span></th>
+          <th><span class="field-label">Message</span></th>
+          <th><span class="field-label">Correlation</span></th>
+        </tr>
+      </thead>
+      <tbody id="events-body"></tbody>
+    </table>
+
+    <div class="split-2">
+      <div class="panel grow">
+        <h4 class="section-heading">Selected Event</h4>
+        <table class="grid">
+          <tbody id="event-detail-body">
+            <tr><td colspan="2" class="muted small">Select an event row.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel grow">
+        <h4 class="section-heading">Trace Timeline (same correlation)</h4>
+        <table class="grid">
+          <thead><tr>
+            <th><span class="field-label">Time</span></th>
+            <th><span class="field-label">Component</span></th>
+            <th><span class="field-label">Type</span></th>
+            <th><span class="field-label">Message</span></th>
+          </tr></thead>
+          <tbody id="trace-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const eventsUrl = "{{ events_url }}";
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    let eventsCache = [];
+
+    function primaryCorrelation(item) {
+      const ids = item.correlation_ids || {};
+      const keys = Object.keys(ids);
+      return keys.length ? ids[keys[0]] : "";
+    }
+
+    function renderTrace(anchor) {
+      const corr = primaryCorrelation(anchor);
+      const body = document.getElementById("trace-body");
+      body.innerHTML = "";
+      const items = corr ? eventsCache.filter((e) => Object.values(e.correlation_ids || {}).includes(corr)) : [anchor];
+      for (const row of items) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.created_at || ""}</td>
+          <td>${row.component || ""}</td>
+          <td>${row.event_type || ""}</td>
+          <td>${row.message || ""}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderEvents(items) {
+      eventsCache = items || [];
+      const body = document.getElementById("events-body");
+      body.innerHTML = "";
+      for (const item of eventsCache) {
+        const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+        const corr = primaryCorrelation(item);
+        tr.innerHTML = `
+          <td>${item.created_at || ""}</td>
+          <td>${item.component || ""}</td>
+          <td>${item.event_type || ""}</td>
+          <td>${item.signal_id || ""}</td>
+          <td>${item.message || ""}</td>
+          <td>${corr}</td>
+        `;
+        tr.addEventListener("click", () => {
+          const corr = item.correlation_ids || {};
+          renderKeyValueRows("event-detail-body", [
+            ["Signal ID", item.signal_id || ""],
+            ["Event Type", item.event_type || ""],
+            ["Component", item.component || ""],
+            ["Message", item.message || ""],
+            ["Created At", item.created_at || ""],
+            ["Correlation IDs", Object.entries(corr).map(([k, v]) => `${k}: ${v}`).join(" | ") || "none"],
+          ]);
+          renderTrace(item);
+        });
+        body.appendChild(tr);
+      }
+    }
+
+    async function refreshEvents() {
+      const limit = document.getElementById("events-limit").value || "200";
+      const corr = document.getElementById("corr-id").value.trim();
+      const params = new URLSearchParams({ limit });
+      if (corr) params.set("correlation_id", corr);
+      const payload = await getJson(`${eventsUrl}?${params.toString()}`);
+      renderEvents(payload.items || []);
+    }
+
+    document.getElementById("btn-refresh-events").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshEvents, { pendingText: "Refreshing..." });
+    });
+    refreshEvents().catch((error) => {
+      renderKeyValueRows("event-detail-body", [["Error", String(error)]]);
+    });
+  </script>
+{% endblock %}

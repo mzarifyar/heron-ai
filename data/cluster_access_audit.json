@@ -1,0 +1,125 @@
+{
+  "realm_auth": {
+    "generated_at_utc": "2026-05-11T06:41:46Z",
+    "profiles": [
+      {
+        "realm": "AWS1",
+        "profile": "aws1.ssh",
+        "ready": false,
+        "status": "needs_interactive_login",
+        "needs_interactive_login": true,
+        "last_checked_utc": "2026-05-11T06:41:46Z",
+        "validate": {
+          "ok": false,
+          "valid": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh": {
+          "ok": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh_attempted": true,
+        "reauth_command": "aws session authenticate --profile-name aws1.ssh --account-name k8s_operator --auth kubeconfig"
+      },
+      {
+        "realm": "AWS2",
+        "profile": "aws2.ssh",
+        "ready": false,
+        "status": "needs_interactive_login",
+        "needs_interactive_login": true,
+        "last_checked_utc": "2026-05-11T06:41:46Z",
+        "validate": {
+          "ok": false,
+          "valid": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh": {
+          "ok": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh_attempted": true,
+        "reauth_command": "aws session authenticate --profile-name aws2.ssh --account-name k8s_operator --auth kubeconfig"
+      },
+      {
+        "realm": "AWS3",
+        "profile": "aws3.ssh",
+        "ready": false,
+        "status": "needs_interactive_login",
+        "needs_interactive_login": true,
+        "last_checked_utc": "2026-05-11T06:41:46Z",
+        "validate": {
+          "ok": false,
+          "valid": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh": {
+          "ok": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh_attempted": true,
+        "reauth_command": "aws session authenticate --profile-name aws3.ssh --account-name k8s_operator --auth kubeconfig"
+      },
+      {
+        "realm": "AWS4",
+        "profile": "aws4.ssh",
+        "ready": false,
+        "status": "needs_interactive_login",
+        "needs_interactive_login": true,
+        "last_checked_utc": "2026-05-11T06:41:46Z",
+        "validate": {
+          "ok": false,
+          "valid": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh": {
+          "ok": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh_attempted": true,
+        "reauth_command": "aws session authenticate --profile-name aws4.ssh --account-name k8s_operator --auth kubeconfig"
+      },
+      {
+        "realm": "AWS5",
+        "profile": "aws5.ssh",
+        "ready": false,
+        "status": "needs_interactive_login",
+        "needs_interactive_login": true,
+        "last_checked_utc": "2026-05-11T06:41:46Z",
+        "validate": {
+          "ok": false,
+          "valid": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh": {
+          "ok": false,
+          "code": -1,
+          "stderr": "aws_not_found"
+        },
+        "refresh_attempted": true,
+        "reauth_command": "aws session authenticate --profile-name aws5.ssh --account-name k8s_operator --auth kubeconfig"
+      }
+    ],
+    "ready_realms": [],
+    "needs_interactive_login_realms": [
+      "AWS1",
+      "AWS2",
+      "AWS3",
+      "AWS4",
+      "AWS5"
+    ],
+    "summary": {
+      "ready": 0,
+      "needs_interactive_login": 5,
+      "failed": 0
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "regions": [
+    {
+      "name": "us-east-1",
+      "provider": "aws",
+      "description": "Primary region",
+      "metadata": {
+        "account": "prod"
+      }
+    },
+    {
+      "name": "us-west-2",
+      "provider": "aws",
+      "description": "Secondary region",
+      "metadata": {
+        "account": "stage"
+      }
+    }
+  ],
+  "environments": [
+    {
+      "name": "local",
+      "region": "us-east-1",
+      "tier": "dev",
+      "status": "active",
+      "services": [
+        "sense",
+        "insight",
+        "core",
+        "policy",
+        "reflex",
+        "verify",
+        "escalate",
+        "explain",
+        "chronicle"
+      ],
+      "metadata": {
+        "cluster": "docker-compose"
+      }
+    },
+    {
+      "name": "stage",
+      "region": "us-west-2",
+      "tier": "stage",
+      "status": "maintenance",
+      "services": [
+        "sense",
+        "insight",
+        "core"
+      ],
+      "metadata": {
+        "cluster": "k8s-stage"
+      }
+    }
+  ],
+  "authority": {
+    "jira_mutations": ["admin", "sre"],
+    "ticket_lifecycle": ["admin", "sre"],
+    "diagnostics_execute": ["admin", "sre", "operator"],
+    "diagnostics_invasive": ["admin", "sre"],
+    "sev4_escalation": ["admin", "sre"],
+    "devops_admin_write": ["admin", "sre"]
+  }
+}

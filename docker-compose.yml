@@ -1,0 +1,28 @@
+services:
+  cortex-ai:
+    image: cortex-ai:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    container_name: cortex-ai
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config:ro
+      - ../bots-terraform:/workspace/bots-terraform:ro
+      - ${HOME}/.kube:/root/.kube:ro
+      - ${HOME}/.aws:/root/.aws:ro
+    ports:
+      - "${CORTEX_API_PORT:-8080}:8080"
+    environment:
+      CORTEX_API_HOST: 0.0.0.0
+      PYTHONUNBUFFERED: "1"
+      CORTEX_BOTS_TERRAFORM_ROOT: /workspace/bots-terraform
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

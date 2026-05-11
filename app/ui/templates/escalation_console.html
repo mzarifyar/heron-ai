@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Cortex Escalation Console{% endblock %}
+{% block header_title %}Cortex Escalation Console{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Escalation Console</h3>
+        <div class="muted small">Dispatch dry-run/live escalation payloads and inspect recent events.</div>
+      </div>
+      <button id="btn-send-escalation" type="button">Send</button>
+      <button id="btn-refresh-escalations" type="button">Refresh Events</button>
+    </div>
+    <div class="split-2">
+      <label><span class="field-label">Service</span><input id="esc-service" type="text" value="payments-api"></label>
+      <label><span class="field-label">Severity</span><input id="esc-severity" type="text" value="sev2"></label>
+    </div>
+    <label><span class="field-label">Summary</span><input id="esc-summary" type="text" value="Synthetic escalation from console"></label>
+    <label><span class="field-label">Channels (one `name:target` per line) <span class="info-dot" title="Examples: slack:#cortex-ops, pagerduty:core-oncall, jira:ODA">i</span></span>
+      <textarea id="esc-channels" rows="4">slack:#cortex-ops
+pagerduty:core-oncall
+jira:ODA</textarea>
+    </label>
+    <label><span class="field-label">Dry Run</span><input id="esc-dry-run" type="checkbox" checked></label>
+    <table class="grid"><tbody id="esc-result-body"></tbody></table>
+    <div class="panel">
+      <h4 class="section-heading">Recent Escalation Events</h4>
+      <table class="grid">
+        <thead><tr><th>When</th><th>Service</th><th>Severity</th><th>Channel</th><th>Incident</th></tr></thead>
+        <tbody id="esc-events-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    const { getJson, renderKeyValueRows, runButtonAction, escapeHtml } = window.CortexUI;
+
+    function parseChannels() {
+      const lines = (document.getElementById("esc-channels").value || "").split("\n");
+      return lines
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const idx = line.indexOf(":");
+          if (idx < 0) return null;
+          return { name: line.slice(0, idx).trim(), target: line.slice(idx + 1).trim() };
+        })
+        .filter(Boolean);
+    }
+
+    async function sendEscalation() {
+      const payload = {
+        service: document.getElementById("esc-service").value || "",
+        severity: document.getElementById("esc-severity").value || "sev3",
+        summary: document.getElementById("esc-summary").value || "",
+        channels: parseChannels(),
+        dry_run: document.getElementById("esc-dry-run").checked,
+      };
+      const result = await getJson("/api/v1/ops/escalate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      renderKeyValueRows("esc-result-body", [
+        ["Status", result.status || ""],
+        ["Incident Key", result.incident_key || ""],
+        ["Event Count", (result.events || []).length],
+      ]);
+      await refreshEvents();
+    }
+
+    async function refreshEvents() {
+      const payload = await getJson("/api/v1/ops/escalate/events?limit=30");
+      const body = document.getElementById("esc-events-body");
+      body.innerHTML = "";
+      for (const row of payload.items || []) {
+        const channel = (row.channel || {}).name || "";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(row.created_at || "")}</td>
+          <td>${escapeHtml(row.service || "")}</td>
+          <td>${escapeHtml(row.severity || "")}</td>
+          <td>${escapeHtml(channel)}</td>
+          <td>${escapeHtml(row.incident_key || "")}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    document.getElementById("btn-send-escalation").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, sendEscalation, { pendingText: "Sending..." });
+    });
+    document.getElementById("btn-refresh-escalations").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshEvents, { pendingText: "Refreshing..." });
+    });
+    refreshEvents();
+  </script>
+{% endblock %}

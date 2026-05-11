@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Cortex Jira Auth{% endblock %}
+{% block header_title %}Cortex Jira Auth{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <h3 class="section-title">Jira Browser Auth</h3>
+    <p class="section-title">
+      Authenticate in Jira via browser, then paste your token once. Cortex-AI saves it locally and reuses it.
+    </p>
+    <div class="row">
+      <a href="{{ browser_auth_url }}" target="_blank" rel="noreferrer">Open Jira</a>
+      <span class="muted small">Auth URL: <span class="code">{{ browser_auth_url }}</span></span>
+      <span class="field-label"><span class="info-dot" title="Open Jira in browser to complete login and retrieve a token.">i</span></span>
+    </div>
+    <div class="row">
+      <label class="input-grow"><span class="field-label">Token <span class="info-dot" title="Paste the Jira bearer token acquired from browser authentication.">i</span></span> <input id="token" type="password" placeholder="Paste Jira token">
+      </label>
+      <button id="save" type="button">Save Token</button>
+      <button id="clear" type="button">Clear Token</button>
+    </div>
+    <table class="grid">
+      <tbody id="status-body"></tbody>
+    </table>
+  </div>
+  <script>
+    const { runButtonAction } = window.CortexUI;
+
+    function renderStatus(payload) {
+      const body = document.getElementById("status-body");
+      body.innerHTML = "";
+      const rows = [
+        ["Token Present", payload.token_present ? "yes" : "no"],
+        ["Token Source", payload.source || "none"],
+        ["Saved At", payload.saved_at || "n/a"],
+        ["Expires At", payload.expires_at || "n/a"],
+        ["Env Token Present", payload.env_token_present ? "yes" : "no"],
+      ];
+      for (const [label, value] of rows) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<th>${label}</th><td>${String(value ?? "")}</td>`;
+        body.appendChild(tr);
+      }
+    }
+
+    async function loadStatus() {
+      const response = await fetch("{{ status_url }}");
+      const payload = await response.json();
+      renderStatus(payload);
+    }
+
+    document.getElementById("save").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        const token = document.getElementById("token").value || "";
+        const response = await fetch("{{ save_url }}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+        if (!response.ok) {
+          alert("Failed to save token.");
+        }
+        await loadStatus();
+      }, { pendingText: "Saving..." });
+    });
+
+    document.getElementById("clear").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        await fetch("{{ clear_url }}", { method: "DELETE" });
+        await loadStatus();
+      }, { pendingText: "Clearing..." });
+    });
+
+    loadStatus();
+  </script>
+{% endblock %}

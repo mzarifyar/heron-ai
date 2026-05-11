@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Cortex Jira Queries{% endblock %}
+{% block header_title %}Cortex Jira Queries{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Jira Query Manager</h3>
+        <div class="muted small">Edit query definitions and preview deduped set.</div>
+      </div>
+      <button id="btn-load-queries" type="button">Load</button>
+      <button id="btn-dedupe-queries" type="button">Preview Dedupe</button>
+      <button id="btn-save-queries" type="button">Save</button>
+    </div>
+    <label><span class="field-label">Jira Queries JSON <span class="info-dot" title="Backs config/jira_queries.json puller definitions.">i</span></span>
+      <textarea id="queries-editor" rows="18" class="code"></textarea>
+    </label>
+    <table class="grid"><tbody id="queries-meta-body"></tbody></table>
+    <div class="panel">
+      <h4 class="section-heading">Dedupe Preview</h4>
+      <table class="grid"><tbody id="dedupe-body"></tbody></table>
+    </div>
+  </div>
+  <script>
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const editor = document.getElementById("queries-editor");
+
+    async function loadQueries() {
+      const payload = await getJson("/api/v1/ops/jira-queries");
+      editor.value = JSON.stringify(payload, null, 2);
+      const count = Array.isArray(payload.queries) ? payload.queries.length : 0;
+      renderKeyValueRows("queries-meta-body", [["Query Count", count], ["Status", "Loaded"]]);
+      renderKeyValueRows("dedupe-body", []);
+    }
+
+    async function saveQueries() {
+      const result = await getJson("/api/v1/ops/jira-queries", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editor.value }),
+      });
+      renderKeyValueRows("queries-meta-body", [
+        ["Saved", result.saved ?? false],
+        ["Path", result.path || ""],
+        ["Query Count", result.count ?? 0],
+      ]);
+    }
+
+    async function dedupePreview() {
+      const preview = await getJson("/api/v1/ops/jira-queries/dedupe-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editor.value }),
+      });
+      renderKeyValueRows("dedupe-body", [
+        ["Kept", preview.kept_count ?? 0],
+        ["Dropped", preview.dropped_count ?? 0],
+      ]);
+    }
+
+    document.getElementById("btn-load-queries").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, loadQueries, { pendingText: "Loading..." });
+    });
+    document.getElementById("btn-dedupe-queries").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, dedupePreview, { pendingText: "Analyzing..." });
+    });
+    document.getElementById("btn-save-queries").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, saveQueries, { pendingText: "Saving..." });
+    });
+    loadQueries();
+  </script>
+{% endblock %}

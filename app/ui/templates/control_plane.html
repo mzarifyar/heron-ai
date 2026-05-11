@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Cortex Control Plane{% endblock %}
+{% block header_title %}Cortex Control Plane{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Control Plane</h3>
+        <div class="muted small">Validate environment/service config and simulate rollouts.</div>
+      </div>
+      <button id="btn-refresh-control" type="button">Refresh</button>
+    </div>
+    <div class="split-2">
+      <div class="panel">
+        <h4 class="section-heading">Summary</h4>
+        <table class="grid"><tbody id="control-summary-body"></tbody></table>
+      </div>
+      <div class="panel">
+        <h4 class="section-heading">Validation</h4>
+        <table class="grid"><tbody id="control-validation-body"></tbody></table>
+      </div>
+    </div>
+    <div class="panel">
+      <h4 class="section-heading">Rollout Simulation</h4>
+      <div class="row">
+        <label><span class="field-label">Source Env</span><input id="sim-source" type="text" value="local"></label>
+        <label><span class="field-label">Target Env</span><input id="sim-target" type="text" value="stage"></label>
+        <label><span class="field-label">Service</span><input id="sim-service" type="text" value="sense"></label>
+        <button id="btn-simulate-rollout" type="button">Simulate</button>
+      </div>
+      <table class="grid"><tbody id="control-sim-body"></tbody></table>
+    </div>
+  </div>
+  <script>
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+
+    async function refreshControl() {
+      const payload = await getJson("/api/v1/ops/control-plane");
+      renderKeyValueRows("control-summary-body", [
+        ["Version", payload.version || ""],
+        ["Region Count", (payload.regions || []).length],
+        ["Environment Count", (payload.environments || []).length],
+      ]);
+      const errors = payload.validation_errors || [];
+      const rows = errors.length ? errors.map((item, idx) => [`Error ${idx + 1}`, item]) : [["Validation", "No errors"]];
+      renderKeyValueRows("control-validation-body", rows);
+    }
+
+    async function simulateRollout() {
+      const payload = {
+        source_env: document.getElementById("sim-source").value || "",
+        target_env: document.getElementById("sim-target").value || "",
+        service: document.getElementById("sim-service").value || "",
+      };
+      const result = await getJson("/api/v1/ops/control-plane/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      renderKeyValueRows("control-sim-body", Object.entries(result || {}));
+    }
+
+    document.getElementById("btn-refresh-control").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshControl, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("btn-simulate-rollout").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, simulateRollout, { pendingText: "Simulating..." });
+    });
+    refreshControl();
+  </script>
+{% endblock %}

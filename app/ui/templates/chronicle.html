@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% block title %}Cortex Chronicle{% endblock %}
+{% block header_title %}Cortex Chronicle{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <h3 class="section-title grow">Chronicle Console</h3>
+    </div>
+
+    <div class="panel stack">
+      <div class="row">
+        <label><span class="field-label">Service <span class="info-dot" title="Filter incidents by service name.">i</span></span> <input id="f-service" type="text" placeholder="payments-api"></label>
+        <label><span class="field-label">Severity <span class="info-dot" title="Filter incidents by severity level.">i</span></span> <input id="f-severity" type="text" placeholder="critical"></label>
+        <label><span class="field-label">Region <span class="info-dot" title="Filter incidents by deployment region.">i</span></span> <input id="f-region" type="text" placeholder="phx"></label>
+        <label><span class="field-label">Limit <span class="info-dot" title="Maximum number of incidents returned.">i</span></span> <input id="f-limit" type="number" min="1" max="500" value="100"></label>
+        <button id="btn-refresh-incidents" type="button">Refresh Incidents</button>
+      </div>
+      <table class="grid">
+        <thead>
+          <tr>
+            <th><span class="field-label">Incident</span></th>
+            <th><span class="field-label">Service</span></th>
+            <th><span class="field-label">Severity</span></th>
+            <th><span class="field-label">Region</span></th>
+            <th><span class="field-label">Updated</span></th>
+            <th><span class="field-label">Summary</span></th>
+          </tr>
+        </thead>
+        <tbody id="incidents-body"></tbody>
+      </table>
+    </div>
+
+    <div class="split-2">
+      <div class="panel grow">
+        <h4 class="section-heading">Incident Detail</h4>
+        <table class="grid">
+          <tbody id="incident-detail-body">
+            <tr><td colspan="2" class="muted small">Select an incident.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel grow">
+        <h4 class="section-heading">Timeline</h4>
+        <table class="grid">
+          <thead><tr>
+            <th><span class="field-label">When</span></th>
+            <th><span class="field-label">Component</span></th>
+            <th><span class="field-label">Type</span></th>
+            <th><span class="field-label">Summary</span></th>
+          </tr></thead>
+          <tbody id="timeline-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="split-2">
+      <div class="panel grow stack">
+        <h4 class="section-title">Add Annotation</h4>
+        <label><span class="field-label">Author <span class="info-dot" title="Display name for the annotation author.">i</span></span> <input id="ann-author" type="text" placeholder="author" value="operator"></label>
+        <label><span class="field-label">Actor Role <span class="info-dot" title="Role context for this annotation entry.">i</span></span> <input id="ann-role" type="text" placeholder="actor role" value="operator"></label>
+        <label><span class="field-label">Note <span class="info-dot" title="Freeform annotation text stored with the incident.">i</span></span> <textarea id="ann-note" rows="3" placeholder="annotation note"></textarea></label>
+        <button id="btn-add-annotation" type="button">Add Annotation</button>
+      </div>
+      <div class="panel grow stack">
+        <h4 class="section-title">Postmortem Editor</h4>
+        <label><span class="field-label">Actor Role <span class="info-dot" title="Role updating the postmortem document.">i</span></span> <input id="pm-role" type="text" placeholder="actor role" value="sre"></label>
+        <label><span class="field-label">Summary <span class="info-dot" title="Concise incident summary for postmortem readers.">i</span></span> <textarea id="pm-summary" rows="2" placeholder="summary"></textarea></label>
+        <label><span class="field-label">Impact <span class="info-dot" title="Business or user impact details.">i</span></span> <textarea id="pm-impact" rows="2" placeholder="impact"></textarea></label>
+        <label><span class="field-label">Root Cause <span class="info-dot" title="Underlying cause identified for the incident.">i</span></span> <textarea id="pm-root-cause" rows="2" placeholder="root cause"></textarea></label>
+        <button id="btn-save-postmortem" type="button">Save Postmortem</button>
+      </div>
+    </div>
+
+    <div class="split-2">
+      <div class="panel grow">
+        <h4 class="section-heading">Reports</h4>
+        <button id="btn-refresh-reports" type="button">Refresh Reports</button>
+        <table class="grid top-gap-8">
+          <tbody id="reports-summary-body"></tbody>
+        </table>
+        <table class="grid top-gap-8">
+          <tbody id="incident-report-body"></tbody>
+        </table>
+      </div>
+      <div class="panel grow">
+        <h4 class="section-heading">Insights</h4>
+        <button id="btn-refresh-insights" type="button">Refresh Insights</button>
+        <table class="grid top-gap-8">
+          <tbody id="near-misses-body"></tbody>
+        </table>
+        <table class="grid top-gap-8">
+          <tbody id="tag-trends-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const incidentsUrl = "{{ incidents_url }}";
+    const timelinePrefix = "{{ timeline_url_prefix }}";
+    const annotationsPrefix = "{{ annotations_url_prefix }}";
+    const postmortemPrefix = "{{ postmortem_url_prefix }}";
+    const reportSummaryUrl = "{{ report_summary_url }}";
+    const reportPrefix = "{{ report_url_prefix }}";
+    const nearMissUrl = "{{ near_miss_url }}";
+    const tagTrendsUrl = "{{ tag_trends_url }}";
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    let selectedIncidentId = "";
+
+    function renderIncidents(items) {
+      const body = document.getElementById("incidents-body");
+      body.innerHTML = "";
+      for (const item of items || []) {
+        const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+        tr.innerHTML = `
+          <td><span class="code">${item.incident_id || ""}</span></td>
+          <td>${item.service || ""}</td>
+          <td>${item.severity || ""}</td>
+          <td>${item.region || ""}</td>
+          <td>${item.updated_at || ""}</td>
+          <td>${item.summary || ""}</td>
+        `;
+        tr.addEventListener("click", async () => {
+          selectedIncidentId = item.incident_id || "";
+          await loadIncident(selectedIncidentId);
+        });
+        body.appendChild(tr);
+      }
+    }
+
+    async function loadIncidents() {
+      const params = new URLSearchParams();
+      const service = document.getElementById("f-service").value.trim();
+      const severity = document.getElementById("f-severity").value.trim();
+      const region = document.getElementById("f-region").value.trim();
+      const limit = document.getElementById("f-limit").value.trim();
+      if (service) params.set("service", service);
+      if (severity) params.set("severity", severity);
+      if (region) params.set("region", region);
+      if (limit) params.set("limit", limit);
+      const payload = await getJson(`${incidentsUrl}?${params.toString()}`);
+      renderIncidents(payload.items || []);
+      if (!selectedIncidentId && payload.items && payload.items.length) {
+        selectedIncidentId = payload.items[0].incident_id || "";
+        if (selectedIncidentId) await loadIncident(selectedIncidentId);
+      }
+    }
+
+    function renderTimeline(items) {
+      const body = document.getElementById("timeline-body");
+      body.innerHTML = "";
+      for (const row of items || []) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.occurred_at || row.created_at || ""}</td>
+          <td>${row.component || ""}</td>
+          <td>${row.event_type || ""}</td>
+          <td>${row.summary || ""}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    async function loadIncident(incidentId) {
+      if (!incidentId) return;
+      const detail = await getJson(`${timelinePrefix}/${incidentId}`);
+      const timeline = await getJson(`${timelinePrefix}/${incidentId}/timeline?limit=300`);
+      const incident = detail.incident || {};
+      renderKeyValueRows("incident-detail-body", [
+        ["Incident ID", incident.incident_id || ""],
+        ["Service", incident.service || ""],
+        ["Severity", incident.severity || ""],
+        ["Region", incident.region || ""],
+        ["Status", incident.status || ""],
+        ["Summary", incident.summary || ""],
+        ["Created At", incident.started_at || ""],
+        ["Updated At", incident.updated_at || ""],
+      ]);
+      renderTimeline(timeline.items || []);
+      const pm = detail.postmortem || {};
+      document.getElementById("pm-summary").value = pm.summary || "";
+      document.getElementById("pm-impact").value = pm.impact || "";
+      document.getElementById("pm-root-cause").value = pm.root_cause || "";
+      const report = (await getJson(`${reportPrefix}/${incidentId}`)).item || {};
+      renderKeyValueRows("incident-report-body", [
+        ["Incident", report.incident_id || incidentId],
+        ["Created At", report.created_at || "n/a"],
+        ["Near-Miss Count", report.near_miss_count ?? 0],
+        ["Action Failure Rate", report.action_failure_rate ?? 0],
+        ["Tag Count", (report.tags || []).length],
+      ]);
+    }
+
+    async function addAnnotation() {
+      if (!selectedIncidentId) return alert("Select an incident first.");
+      const payload = {
+        author: document.getElementById("ann-author").value || "operator",
+        actor_role: document.getElementById("ann-role").value || "operator",
+        note: document.getElementById("ann-note").value || "",
+        tags: [],
+        attachments: [],
+      };
+      if (!payload.note.trim()) return alert("Annotation note is required.");
+      await getJson(`${annotationsPrefix}/${selectedIncidentId}/annotations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      document.getElementById("ann-note").value = "";
+      await loadIncident(selectedIncidentId);
+    }
+
+    async function savePostmortem() {
+      if (!selectedIncidentId) return alert("Select an incident first.");
+      const payload = {
+        actor_role: document.getElementById("pm-role").value || "sre",
+        template_version: "v1",
+        summary: document.getElementById("pm-summary").value || null,
+        impact: document.getElementById("pm-impact").value || null,
+        root_cause: document.getElementById("pm-root-cause").value || null,
+      };
+      await getJson(`${postmortemPrefix}/${selectedIncidentId}/postmortem`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      await loadIncident(selectedIncidentId);
+    }
+
+    async function refreshReportsAndInsights() {
+      const summary = await getJson(reportSummaryUrl);
+      const near = await getJson(nearMissUrl);
+      const tags = await getJson(tagTrendsUrl);
+      renderKeyValueRows("reports-summary-body", [
+        ["Incidents Total", summary.incidents_total ?? 0],
+        ["Open Incidents", summary.incidents_open ?? 0],
+        ["Resolved Incidents", summary.incidents_resolved ?? 0],
+        ["Near-Miss Total", summary.near_miss_total ?? 0],
+      ]);
+      renderKeyValueRows("near-misses-body", [
+        ["Near-Miss Incidents", near.count ?? 0],
+        ["Top Incident", (near.items || [])[0]?.incident_id || "n/a"],
+        ["Top Service", (near.items || [])[0]?.service || "n/a"],
+      ]);
+      const topTags = (tags.items || []).slice(0, 5).map((item) => `${item.tag}: ${item.count}`).join(" | ") || "none";
+      renderKeyValueRows("tag-trends-body", [
+        ["Top Tags", topTags],
+        ["Tag Count", tags.count ?? 0],
+      ]);
+    }
+
+    document.getElementById("btn-refresh-incidents").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, loadIncidents, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("btn-add-annotation").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, addAnnotation, { pendingText: "Saving..." });
+    });
+    document.getElementById("btn-save-postmortem").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, savePostmortem, { pendingText: "Saving..." });
+    });
+    document.getElementById("btn-refresh-reports").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshReportsAndInsights, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("btn-refresh-insights").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshReportsAndInsights, { pendingText: "Refreshing..." });
+    });
+
+    loadIncidents().then(refreshReportsAndInsights).catch((error) => {
+      renderKeyValueRows("incident-detail-body", [["Error", String(error)]]);
+    });
+  </script>
+{% endblock %}

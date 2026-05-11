@@ -1,0 +1,20 @@
+{
+  "queries": [
+    {
+      "name": "da-development",
+      "jql": "project in (\"Digital Assistant\") AND type = Incident AND summary ~ \"Development\" AND Severity in (2, 3, 4) AND source in (Autocut) AND reporter != gear-securitycentral AND status NOT IN (Resolved, \"Resolved (RO)\", Closed, \"Closed (RO)\", Archived, Canceled, \"Canceled (RO)\")"
+    },
+    {
+      "name": "da-production",
+      "jql": "project in (\"Digital Assistant\") AND type = Incident AND summary ~ \"Production\" AND source in (Autocut) AND reporter != gear-securitycentral AND status NOT IN (Resolved, \"Resolved (RO)\", Closed, \"Closed (RO)\", Archived, Canceled, \"Canceled (RO)\")"
+    },
+    {
+      "name": "cda-production",
+      "jql": "project in (\"Clinical Digital Assistant\") AND type = Incident AND summary ~ \"Production\" AND source in (Autocut) AND reporter != gear-securitycentral AND status NOT IN (Resolved, \"Resolved (RO)\", Closed, \"Closed (RO)\", Archived, Canceled, \"Canceled (RO)\")"
+    },
+    {
+      "name": "caa-regional-production",
+      "jql": "project in (\"Clinical Digital Assistant\") AND type = Incident AND summary ~ \"(IAD OR PHX OR CA-TORONTO-1 OR UK-LONDON-1)\" AND summary ~ \"Production\" AND status in (Open, \"In Progress\") AND source in (Autocut) AND reporter != gear-securitycentral"
+    }
+  ]
+}

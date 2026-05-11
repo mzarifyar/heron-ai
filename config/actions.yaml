@@ -1,0 +1,39 @@
+version: "2026-04-22"
+defaults:
+  retries: 1
+  timeout_seconds: 30
+  cooldown_seconds: 15
+actions:
+  observe_only:
+    type: "workflow"
+    command: "noop"
+    retries: 0
+    cooldown_seconds: 0
+  restart_component:
+    type: "command"
+    command: "kubectl rollout restart deployment/{service}"
+    retries: 1
+    timeout_seconds: 30
+    cooldown_seconds: 30
+    fallback:
+      - "escalate_incident"
+  rollback_latest_deployment:
+    type: "command"
+    command: "kubectl rollout undo deployment/{service}"
+    retries: 1
+    timeout_seconds: 45
+    cooldown_seconds: 60
+    fallback:
+      - "escalate_incident"
+  escalate_incident:
+    type: "api"
+    command: "incident://escalate/{service}"
+    retries: 0
+    timeout_seconds: 20
+    cooldown_seconds: 10
+  page_on_call:
+    type: "api"
+    command: "pager://notify/{service}"
+    retries: 0
+    timeout_seconds: 20
+    cooldown_seconds: 10

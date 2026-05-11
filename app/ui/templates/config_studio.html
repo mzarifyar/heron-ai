@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Cortex Config Studio{% endblock %}
+{% block header_title %}Cortex Config Studio{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Config Studio</h3>
+        <div class="muted small">Edit validated runtime config files in one place.</div>
+      </div>
+      <label><span class="field-label">File</span>
+        <select id="config-name">
+          <option value="policy">policy.yaml</option>
+          <option value="actions">actions.yaml</option>
+          <option value="thresholds">thresholds.json</option>
+          <option value="control_plane">control_plane.json</option>
+        </select>
+      </label>
+      <button id="btn-load-config" type="button">Load</button>
+      <button id="btn-save-config" type="button">Save</button>
+    </div>
+    <label><span class="field-label">Config Content <span class="info-dot" title="Validated as YAML/JSON based on selected file.">i</span></span>
+      <textarea id="config-editor" rows="20" class="code"></textarea>
+    </label>
+    <table class="grid"><tbody id="config-meta-body"></tbody></table>
+  </div>
+  <script>
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+
+    function selectedName() {
+      return document.getElementById("config-name").value;
+    }
+
+    async function loadConfig() {
+      const name = selectedName();
+      const payload = await getJson(`/api/v1/ops/config/${encodeURIComponent(name)}`);
+      document.getElementById("config-editor").value = payload.content || "";
+      renderKeyValueRows("config-meta-body", [["Name", payload.name || ""], ["Path", payload.path || ""], ["Status", "Loaded"]]);
+    }
+
+    async function saveConfig() {
+      const name = selectedName();
+      const content = document.getElementById("config-editor").value || "";
+      const result = await getJson(`/api/v1/ops/config/${encodeURIComponent(name)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      renderKeyValueRows("config-meta-body", [["Saved", result.saved ?? false], ["Name", result.name || ""], ["Path", result.path || ""]]);
+    }
+
+    document.getElementById("btn-load-config").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, loadConfig, { pendingText: "Loading..." });
+    });
+    document.getElementById("btn-save-config").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, saveConfig, { pendingText: "Saving..." });
+    });
+    document.getElementById("config-name").addEventListener("change", loadConfig);
+    loadConfig();
+  </script>
+{% endblock %}

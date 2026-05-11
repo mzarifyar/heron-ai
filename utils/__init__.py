@@ -1,0 +1,51 @@
+"""Backward-compatible utility exports."""
+
+from app.integrations.jira import (
+    BASE_URL,
+    add_comment,
+    add_label,
+    create_issue,
+    get_bearer_headers,
+    get_fields_map,
+    get_issue_description,
+    get_issue_full,
+    get_issue_labels,
+    search_issues,
+)
+from app.integrations.kubernetes import (
+    check_deployment_health,
+    get_deployment,
+    get_kubeconfig_for_cluster,
+    get_pod_container_states,
+    get_pod_logs,
+    kubectl_json,
+    list_pods_for_deployment,
+    restart_pod,
+    rollout_restart_daemonset,
+    rollout_restart_deployment,
+    rollout_restart_statefulset,
+)
+
+__all__ = [
+    "BASE_URL",
+    "add_comment",
+    "add_label",
+    "check_deployment_health",
+    "create_issue",
+    "get_bearer_headers",
+    "get_deployment",
+    "get_fields_map",
+    "get_issue_description",
+    "get_issue_full",
+    "get_issue_labels",
+    "get_kubeconfig_for_cluster",
+    "get_pod_container_states",
+    "get_pod_logs",
+    "kubectl_json",
+    "list_pods_for_deployment",
+    "restart_pod",
+    "rollout_restart_daemonset",
+    "rollout_restart_deployment",
+    "rollout_restart_statefulset",
+    "search_issues",
+]

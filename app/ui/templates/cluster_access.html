@@ -1,0 +1,803 @@
+{% extends "base.html" %}
+{% block title %}Cortex Cluster Access{% endblock %}
+{% block header_title %}Cortex Cluster Access{% endblock %}
+{% block content %}
+  <style>
+    .cluster-actions {
+      align-items: stretch;
+    }
+    .cluster-actions button {
+      min-width: 132px;
+    }
+    .cluster-tree {
+      display: grid;
+      gap: 8px;
+    }
+    .cluster-tree details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px 10px;
+    }
+    .cluster-tree details > summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #173856;
+    }
+    .cluster-tree details > summary::-webkit-details-marker {
+      display: none;
+    }
+    .cluster-meta {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .cluster-list {
+      margin-top: 8px;
+      display: grid;
+      gap: 6px;
+    }
+    .cluster-item {
+      border: 1px solid #d9e4ef;
+      border-radius: 8px;
+      background: #f9fcff;
+      padding: 8px 10px;
+      display: grid;
+      gap: 4px;
+    }
+    .cluster-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pill-ok {
+      border: 1px solid #8bcc9f;
+      background: #eaf8ee;
+      color: #166534;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill-failed {
+      border: 1px solid #e2a1a1;
+      background: #fff1f1;
+      color: #991b1b;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .section-dropdown {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px 10px;
+    }
+    .section-dropdown > summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #173856;
+    }
+    .section-dropdown > summary::-webkit-details-marker {
+      display: none;
+    }
+    .section-body {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+    .status-chip {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #d9e4ef;
+      background: #f9fcff;
+      color: #1d4f78;
+    }
+    .status-chip.ok {
+      border-color: #8bcc9f;
+      background: #eaf8ee;
+      color: #166534;
+    }
+    .status-chip.fail {
+      border-color: #e2a1a1;
+      background: #fff1f1;
+      color: #991b1b;
+    }
+    .command-cell {
+      max-width: 620px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+    }
+  </style>
+  <div class="stack page-shell">
+    <div class="panel stack">
+      <h3 class="section-title">Cluster Hierarchy</h3>
+      <div class="muted small">Default collapsed. Expand each level to drill down by common tags first.</div>
+      <div id="hierarchy-root" class="cluster-tree"></div>
+    </div>
+
+    <details class="section-dropdown">
+      <summary><span>Cluster Access Controls</span><span class="cluster-meta">Actions and Summary</span></summary>
+      <div class="section-body">
+        <div class="row cluster-actions">
+          <div class="grow">
+            <h3 class="section-title">EKS Cluster Discovery and Access Validation</h3>
+            <div class="muted small">Organized by Realm → Region → Account → Cluster with validation status and auth remediation.</div>
+          </div>
+          <label class="small" style="display:flex; align-items:center; gap:6px;">
+            <input id="focus-aws1" type="checkbox" checked>
+            Validate AWS1 first
+          </label>
+          <button id="btn-refresh" type="button">Refresh</button>
+          <button id="btn-discover" type="button">Discover</button>
+          <button id="btn-validate" type="button">Validate Access</button>
+          <button id="btn-apply" type="button">Apply to Cluster Targets</button>
+        </div>
+        <table class="grid">
+          <tbody id="summary-body"></tbody>
+        </table>
+        <div class="stack">
+          <h3 class="section-title">Realm Auth Status Board</h3>
+          <div class="muted small">Per-realm AWS session health with auto-validate/refresh state and mitigation queue readiness.</div>
+          <div class="row">
+            <button id="btn-refresh-realm-auth" type="button">Refresh Realm Auth Now</button>
+          </div>
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>Realm</th>
+                <th>Profile</th>
+                <th>Status</th>
+                <th>Ready</th>
+                <th>Needs Interactive Login</th>
+                <th>Last Checked</th>
+              </tr>
+            </thead>
+            <tbody id="realm-auth-body"></tbody>
+          </table>
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>Mitigation Queue</th>
+                <th>Count</th>
+                <th>Waiting Realm Auth</th>
+                <th>Ready to Run</th>
+                <th>Released</th>
+              </tr>
+            </thead>
+            <tbody id="mitigation-queue-body"></tbody>
+          </table>
+        </div>
+        <div id="status-message" class="small muted"></div>
+      </div>
+    </details>
+
+    <details id="kubeconfig-panel" class="section-dropdown" style="display:none;">
+      <summary><span>Kubeconfig Bootstrap Required</span><span class="cluster-meta">Missing Cluster Configs</span></summary>
+      <div class="section-body">
+        <div id="kubeconfig-help" class="muted small"></div>
+        <table class="grid">
+          <tbody id="kubeconfig-summary-body"></tbody>
+        </table>
+        <table class="grid">
+          <thead>
+            <tr>
+              <th>Cluster</th>
+              <th>Env</th>
+              <th>Region</th>
+              <th>Profile</th>
+              <th>Expected File</th>
+              <th>Bootstrap Command</th>
+              <th>Copy</th>
+            </tr>
+          </thead>
+          <tbody id="kubeconfig-entries-body"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="section-dropdown">
+      <summary><span>Validation Results</span><span class="cluster-meta">Per-Cluster Checks</span></summary>
+      <div class="section-body">
+        <div class="row">
+          <label class="small">Filter:
+            <select id="validation-filter">
+              <option value="all">All</option>
+              <option value="failed">Failures Only</option>
+              <option value="success">Success Only</option>
+            </select>
+          </label>
+          <div id="validation-summary" class="small muted"></div>
+        </div>
+        <table class="grid">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Cluster</th>
+              <th>Realm</th>
+              <th>Region</th>
+              <th>Account</th>
+              <th>Status</th>
+              <th>Kubeconfig Source</th>
+              <th>Context</th>
+              <th>API</th>
+              <th>Namespaces</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="validation-body"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <details id="reauth-panel" class="section-dropdown" style="display:none;">
+      <summary><span>AWS Re-Authentication Required</span><span class="cluster-meta">Expired Sessions</span></summary>
+      <div class="section-body">
+        <div id="reauth-help" class="muted small"></div>
+        <div id="reauth-commands" class="stack"></div>
+        <div class="row">
+          <button id="btn-revalidate" type="button">I Logged In, Re-Validate</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="section-dropdown">
+      <summary><span>Include government/DOD clusters</span><span class="cluster-meta">Filter Scope</span></summary>
+      <div class="section-body">
+        <div class="row">
+          <label><input id="include-government" type="checkbox"> Include government/DOD clusters</label>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    const { escapeHtml, getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const hierarchyRoot = document.getElementById("hierarchy-root");
+    const validationBody = document.getElementById("validation-body");
+    const validationFilter = document.getElementById("validation-filter");
+    const validationSummary = document.getElementById("validation-summary");
+    const statusMessage = document.getElementById("status-message");
+    const includeGovernmentEl = document.getElementById("include-government");
+    const focusOc1El = document.getElementById("focus-aws1");
+    const realmAuthBody = document.getElementById("realm-auth-body");
+    const mitigationQueueBody = document.getElementById("mitigation-queue-body");
+    const reauthPanel = document.getElementById("reauth-panel");
+    const reauthHelp = document.getElementById("reauth-help");
+    const reauthCommands = document.getElementById("reauth-commands");
+    const kubeconfigPanel = document.getElementById("kubeconfig-panel");
+    const kubeconfigHelp = document.getElementById("kubeconfig-help");
+    const kubeconfigSummaryBody = document.getElementById("kubeconfig-summary-body");
+    const kubeconfigEntriesBody = document.getElementById("kubeconfig-entries-body");
+    let latestValidationRows = [];
+
+    function passFail(ok) {
+      return ok ? "OK" : "FAIL";
+    }
+
+    async function copyText(text) {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "absolute";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+
+    function buildValidationIndex(results) {
+      const index = new Map();
+      (results || []).forEach((row) => {
+        const key = String(row.cluster || "").trim().toLowerCase();
+        if (key) index.set(key, row);
+      });
+      return index;
+    }
+
+    function toTree(targets, validationIndex) {
+      const tree = {};
+      (targets || []).forEach((item) => {
+        const cluster = String(item.cluster || "").trim();
+        if (!cluster) return;
+        const realm = String(item.realm || "UNKNOWN").trim() || "UNKNOWN";
+        const region = String(item.region || "unknown-region").trim() || "unknown-region";
+        const account = String(item.account || "unmapped").trim() || "unmapped";
+        const clusterKey = cluster.toLowerCase();
+        const validation = validationIndex.get(clusterKey) || {};
+        if (!tree[realm]) tree[realm] = {};
+        if (!tree[realm][region]) tree[realm][region] = {};
+        if (!tree[realm][region][account]) tree[realm][region][account] = [];
+        tree[realm][region][account].push({
+          cluster,
+          environment: item.environment || "",
+          airport_code: item.airport_code || "",
+          government: !!item.government,
+          status: validation.status || "not_validated",
+          accessible: Boolean(validation.accessible),
+        });
+      });
+      return tree;
+    }
+
+    function fallbackTargetsFromValidation(validationResults) {
+      return (validationResults || []).map((item) => ({
+        cluster: String(item.cluster || "").trim(),
+        realm: String(item.realm || "UNKNOWN").trim() || "UNKNOWN",
+        region: String(item.region || "unknown-region").trim() || "unknown-region",
+        account: String(item.account || "unmapped").trim() || "unmapped",
+        environment: item.environment || "",
+        airport_code: item.airport_code || "",
+        government: false,
+      })).filter((item) => item.cluster);
+    }
+
+    function isOc1(item) {
+      return String(item && item.realm || "").trim().toUpperCase() === "AWS1";
+    }
+
+    function applyRealmFocus(items) {
+      const rows = Array.isArray(items) ? items : [];
+      if (!focusOc1El.checked) return rows;
+      return rows.filter((item) => isOc1(item));
+    }
+
+    function countClusters(node) {
+      if (Array.isArray(node)) return node.length;
+      let total = 0;
+      Object.values(node || {}).forEach((child) => {
+        total += countClusters(child);
+      });
+      return total;
+    }
+
+    function sortRealmKeys(a, b) {
+      const ra = String(a || "").trim().toUpperCase();
+      const rb = String(b || "").trim().toUpperCase();
+      const ma = ra.match(/^OC(\d+)$/);
+      const mb = rb.match(/^OC(\d+)$/);
+      if (ma && mb) {
+        const na = Number(ma[1]);
+        const nb = Number(mb[1]);
+        if (na !== nb) return na - nb;
+      } else if (ma) {
+        return -1;
+      } else if (mb) {
+        return 1;
+      }
+      return ra.localeCompare(rb);
+    }
+
+    function renderHierarchy(targets, validationResults, knownRealms) {
+      hierarchyRoot.innerHTML = "";
+      const validationIndex = buildValidationIndex(validationResults);
+      const tree = toTree(targets, validationIndex);
+      const discoveredRealms = Object.keys(tree);
+      const catalogRealms = Array.isArray(knownRealms) ? knownRealms.filter((x) => String(x || "").trim()) : [];
+      const realms = Array.from(new Set([...catalogRealms, ...discoveredRealms])).sort(sortRealmKeys);
+      if (realms.length === 0) {
+        hierarchyRoot.innerHTML = `<div class="muted small">No discovered clusters yet. Click Discover first.</div>`;
+        return;
+      }
+
+      realms.forEach((realm) => {
+        const realmNode = tree[realm] || {};
+        const realmDetails = document.createElement("details");
+        const realmSummary = document.createElement("summary");
+        realmSummary.innerHTML = `<span>${escapeHtml(realm)}</span><span class="cluster-meta">${countClusters(realmNode)} clusters</span>`;
+        realmDetails.appendChild(realmSummary);
+
+        if (Object.keys(realmNode).length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "muted small";
+          empty.textContent = "No discovered clusters currently mapped to this realm.";
+          realmDetails.appendChild(empty);
+          hierarchyRoot.appendChild(realmDetails);
+          return;
+        }
+
+        Object.keys(realmNode).sort((a, b) => a.localeCompare(b)).forEach((region) => {
+          const regionNode = realmNode[region];
+          const regionDetails = document.createElement("details");
+          const regionSummary = document.createElement("summary");
+          regionSummary.innerHTML = `<span>${escapeHtml(region)}</span><span class="cluster-meta">${countClusters(regionNode)} clusters</span>`;
+          regionDetails.appendChild(regionSummary);
+
+          Object.keys(regionNode).sort((a, b) => a.localeCompare(b)).forEach((account) => {
+            const accountClusters = regionNode[account];
+            const accountDetails = document.createElement("details");
+            const accountSummary = document.createElement("summary");
+            accountSummary.innerHTML = `<span>${escapeHtml(account)}</span><span class="cluster-meta">${accountClusters.length} clusters</span>`;
+            accountDetails.appendChild(accountSummary);
+
+            const clusterList = document.createElement("div");
+            clusterList.className = "cluster-list";
+            accountClusters.sort((a, b) => a.cluster.localeCompare(b.cluster));
+            accountClusters.forEach((entry) => {
+              const item = document.createElement("div");
+              item.className = "cluster-item";
+              const statusValue = String(entry.status || "").trim().toLowerCase();
+              const statusPositive = entry.accessible || statusValue === "kubeconfig_present";
+              const pill = statusPositive ? "pill-ok" : "pill-failed";
+              const statusText = entry.status === "not_validated" ? "Not Validated" : entry.status;
+              item.innerHTML = `
+                <div class="cluster-line">
+                  <span><strong>${escapeHtml(entry.cluster)}</strong></span>
+                  <span class="${pill}">${escapeHtml(statusText)}</span>
+                </div>
+                <div class="muted small">Env: ${escapeHtml(entry.environment || "n/a")} | Airport: ${escapeHtml(entry.airport_code || "n/a")} | Government: ${escapeHtml(String(entry.government))}</div>
+              `;
+              clusterList.appendChild(item);
+            });
+            accountDetails.appendChild(clusterList);
+            regionDetails.appendChild(accountDetails);
+          });
+          realmDetails.appendChild(regionDetails);
+        });
+        hierarchyRoot.appendChild(realmDetails);
+      });
+    }
+
+    function checkCell(check) {
+      if (!check || typeof check !== "object") return "n/a";
+      return passFail(Boolean(check.success));
+    }
+
+    function validationSuccess(item) {
+      const status = String(item && item.status || "").trim().toLowerCase();
+      if (status === "ok" || status === "auth_ok" || status === "auth_not_required" || status === "kubeconfig_present") return true;
+      return Boolean(item && item.accessible);
+    }
+
+    function statusChip(status, success) {
+      const text = String(status || "unknown");
+      const cls = success ? "ok" : "fail";
+      return `<span class="status-chip ${cls}">${escapeHtml(text)}</span>`;
+    }
+
+    function renderValidation(results) {
+      latestValidationRows = Array.isArray(results) ? results : [];
+      const mode = String(validationFilter && validationFilter.value || "all");
+      const source = latestValidationRows;
+      const filtered = source.filter((item) => {
+        if (mode === "failed") return !validationSuccess(item);
+        if (mode === "success") return validationSuccess(item);
+        return true;
+      });
+      validationBody.innerHTML = "";
+      filtered.forEach((item, idx) => {
+        const checks = item.checks || {};
+        const context = checks.current_context && checks.current_context.stdout ? checks.current_context.stdout.trim() : "";
+        const success = validationSuccess(item);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${escapeHtml(item.cluster || "")}</td>
+          <td>${escapeHtml(item.realm || "")}</td>
+          <td>${escapeHtml(item.region || "")}</td>
+          <td>${escapeHtml(item.account || "")}</td>
+          <td>${statusChip(item.status || "", success)}</td>
+          <td>${escapeHtml(item.kubeconfig_source || "n/a")}</td>
+          <td>${escapeHtml(context || "n/a")}</td>
+          <td>${escapeHtml(checkCell(checks.api_version))}</td>
+          <td>${escapeHtml(checkCell(checks.namespaces))}</td>
+          <td>${escapeHtml(item.reason || "")}</td>
+        `;
+        validationBody.appendChild(tr);
+      });
+      const passed = filtered.filter((item) => validationSuccess(item)).length;
+      const failed = filtered.length - passed;
+      validationSummary.textContent = `${filtered.length} shown (success: ${passed}, failed: ${failed})`;
+    }
+
+    function renderSummary(payload) {
+      const discovery = payload.discovery || {};
+      const validation = payload.validation || {};
+      const validationAuth = payload.validation_auth || {};
+      const readiness = payload.auth_readiness || {};
+      const reauth = payload.reauth || {};
+      const kubeconfigBootstrap = payload.kubeconfig_bootstrap || {};
+      const realmAuth = payload.realm_auth || {};
+      const mitigationQueue = payload.mitigation_queue || {};
+      const validationRows = validation.results || [];
+      const discoveryTargets = Array.isArray(discovery.targets) ? discovery.targets : [];
+      const effectiveTargets = discoveryTargets.length > 0 ? discoveryTargets : fallbackTargetsFromValidation(validationRows);
+      const validationChecked = Number(validationRows.length ?? 0);
+      const validationAccessible = Number(validationRows.filter((x) => Boolean(x && x.accessible)).length ?? 0);
+      const validationFailed = Number(validationRows.filter((x) => x && x.status && x.status !== "ok").length ?? 0);
+      const validationAuthRows = validationAuth.results || [];
+      const catalogRealms = Array.isArray(payload.realm_catalog) ? payload.realm_catalog : [];
+      renderKeyValueRows("summary-body", [
+        ["Audit Path", payload.audit_path || "n/a"],
+        ["Discovery Clusters", discovery.clusters_total ?? effectiveTargets.length],
+        ["Validation Checked", validationChecked],
+        ["Validation Accessible", validationAccessible],
+        ["Validation Failed", validationFailed],
+        ["Auth Revalidate Rows", validationAuthRows.length],
+        ["Skipped Government", validation.skipped_government ?? 0],
+        ["Re-auth Required", reauth.required ?? false],
+        ["Realm Catalog (script)", catalogRealms.length || 0],
+        ["Realms", new Set(effectiveTargets.map((x) => x.realm || "UNKNOWN")).size],
+        ["Regions", new Set(effectiveTargets.map((x) => x.region || "unknown-region")).size],
+        ["Tenancies", new Set(effectiveTargets.map((x) => x.account || "unmapped")).size],
+        ["kubectl in PATH", readiness.kubectl_in_path ?? false],
+        ["aws in PATH", readiness.aws_in_path ?? false],
+        ["~/.kube present", readiness.home_kube_exists ?? false],
+        ["~/.aws present", readiness.home_aws_exists ?? false],
+      ]);
+      renderHierarchy(effectiveTargets, validationRows, catalogRealms);
+      renderValidation(validationRows);
+      renderReauth(reauth);
+      renderKubeconfigBootstrap(kubeconfigBootstrap);
+      renderRealmAuthBoard(realmAuth, mitigationQueue);
+    }
+
+    function renderRealmAuthBoard(realmAuth, mitigationQueue) {
+      realmAuthBody.innerHTML = "";
+      mitigationQueueBody.innerHTML = "";
+      const rows = Array.isArray(realmAuth.profiles) ? realmAuth.profiles : [];
+      rows.forEach((item) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(item.realm || "")}</td>
+          <td>${escapeHtml(item.profile || "")}</td>
+          <td>${escapeHtml(item.status || "")}</td>
+          <td>${escapeHtml(String(Boolean(item.ready)))}</td>
+          <td>${escapeHtml(String(Boolean(item.needs_interactive_login)))}</td>
+          <td>${escapeHtml(item.last_checked_utc || "")}</td>
+        `;
+        realmAuthBody.appendChild(tr);
+      });
+      if (rows.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="6" class="muted small">No realm auth rows yet.</td>`;
+        realmAuthBody.appendChild(tr);
+      }
+      const mqTr = document.createElement("tr");
+      mqTr.innerHTML = `
+        <td>${escapeHtml(mitigationQueue.generated_at_utc || "n/a")}</td>
+        <td>${escapeHtml(String(mitigationQueue.count ?? 0))}</td>
+        <td>${escapeHtml(String(mitigationQueue.waiting_count ?? 0))}</td>
+        <td>${escapeHtml(String(mitigationQueue.ready_count ?? 0))}</td>
+        <td>${escapeHtml(String(mitigationQueue.released_count ?? 0))}</td>
+      `;
+      mitigationQueueBody.appendChild(mqTr);
+    }
+
+    function renderReauth(reauth) {
+      const commands = Array.isArray(reauth.commands) ? reauth.commands : [];
+      if (!reauth.required || commands.length === 0) {
+        reauthPanel.style.display = "none";
+        reauthCommands.innerHTML = "";
+        reauthHelp.textContent = "";
+        return;
+      }
+      reauthPanel.style.display = "";
+      reauthHelp.textContent = (reauth.help || "Run these commands locally, login in browser, then re-validate.")
+        + ` Account=${reauth.account_name || "aws_operator_access"}, auth=${reauth.auth_mode || "security_token"}.`;
+      reauthCommands.innerHTML = "";
+      commands.forEach((command, index) => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.style.alignItems = "flex-start";
+        const pre = document.createElement("pre");
+        pre.className = "code";
+        pre.style.margin = "0";
+        pre.style.whiteSpace = "pre-wrap";
+        pre.style.flex = "1";
+        pre.textContent = command;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = `Copy ${index + 1}`;
+        button.addEventListener("click", async () => {
+          await copyText(command);
+          statusMessage.textContent = `Copied re-auth command ${index + 1}. Run it in your local terminal.`;
+        });
+        row.appendChild(pre);
+        row.appendChild(button);
+        reauthCommands.appendChild(row);
+      });
+    }
+
+    function renderKubeconfigBootstrap(bootstrap) {
+      const commands = Array.isArray(bootstrap.commands) ? bootstrap.commands : [];
+      const entries = Array.isArray(bootstrap.entries) ? bootstrap.entries : [];
+      if (!bootstrap.required || (commands.length === 0 && entries.length === 0)) {
+        kubeconfigPanel.style.display = "none";
+        kubeconfigSummaryBody.innerHTML = "";
+        kubeconfigEntriesBody.innerHTML = "";
+        kubeconfigHelp.textContent = "";
+        return;
+      }
+      kubeconfigPanel.style.display = "";
+      kubeconfigHelp.textContent = bootstrap.help || "Run kubeconfig bootstrap commands, then Validate Access again.";
+      renderKeyValueRows("kubeconfig-summary-body", [
+        ["Missing Entries", entries.length || 0],
+        ["Unique Commands", commands.length || 0],
+      ]);
+      kubeconfigEntriesBody.innerHTML = "";
+      const rows = entries.length
+        ? entries
+        : commands.map((command) => ({
+            cluster: "",
+            environment: "",
+            region: "",
+            profile: "",
+            expected_kubeconfig_path: "",
+            single_cluster_bootstrap_command: String(command || "").trim(),
+            update_kubeconfig_command: "",
+            verify_kubeconfig_command: "",
+          }));
+      rows.forEach((entry, index) => {
+          const single = String(entry.single_cluster_bootstrap_command || "").trim();
+          const update = String(entry.update_kubeconfig_command || "").trim();
+          const verify = String(entry.verify_kubeconfig_command || "").trim();
+          let command = single;
+          if (!command && update && verify) command = `${update} && ${verify}`;
+          if (!command && update) command = update;
+          if (!command && verify) command = verify;
+          const hasActionableCommand = Boolean(command);
+          const displayCommand = hasActionableCommand
+            ? command
+            : "No supported update_kubeconfig.sh command for this row; resolve via AWS/manual mapping.";
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml(entry.cluster || "")}</td>
+            <td>${escapeHtml(entry.environment || "")}</td>
+            <td>${escapeHtml(entry.region || "")}</td>
+            <td>${escapeHtml(entry.profile || "")}</td>
+            <td>${escapeHtml(entry.expected_kubeconfig_path || "")}</td>
+            <td class="command-cell">${escapeHtml(displayCommand)}</td>
+            <td><button type="button" data-copy-cmd="${escapeHtml(command)}" ${hasActionableCommand ? "" : "disabled"}>Copy</button></td>
+          `;
+          const btn = tr.querySelector("button[data-copy-cmd]");
+          if (btn) {
+            btn.addEventListener("click", async () => {
+              if (!hasActionableCommand) return;
+              await copyText(command);
+              statusMessage.textContent = `Copied bootstrap command for ${entry.cluster || `row ${index + 1}`}.`;
+            });
+          }
+          kubeconfigEntriesBody.appendChild(tr);
+      });
+    }
+
+    async function refresh() {
+      const payload = await getJson("/api/v1/ops/cluster-access/status");
+      renderSummary(payload);
+      statusMessage.textContent = "Loaded cluster access status.";
+    }
+
+    async function discover() {
+      const payload = await getJson("/api/v1/ops/cluster-access/discover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          include_government: includeGovernmentEl.checked,
+          max_clusters: 0,
+          persist: true,
+        }),
+      });
+      statusMessage.textContent = `Discovered ${payload.clusters_total || 0} cluster(s).`;
+      await refresh();
+    }
+
+    async function validate() {
+      let clusters = [];
+      if (focusOc1El.checked) {
+        const current = await getJson("/api/v1/ops/cluster-access/status");
+        const targets = ((current.discovery || {}).targets || []);
+        clusters = applyRealmFocus(targets)
+          .map((item) => String(item.cluster || "").trim())
+          .filter((value) => value.length > 0);
+        if (clusters.length === 0) {
+          statusMessage.textContent = "No AWS1 clusters available in current discovery snapshot; run Discover first or uncheck AWS1 focus.";
+          return;
+        }
+      }
+      const payload = await getJson("/api/v1/ops/cluster-access/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clusters,
+          include_government: includeGovernmentEl.checked,
+          max_clusters: 500,
+          command_timeout_seconds: 25,
+          persist: true,
+        }),
+      });
+      statusMessage.textContent = `Validated ${payload.checked || 0} cluster(s): ${payload.accessible || 0} accessible, ${payload.failed || 0} failed.`;
+      await refresh();
+    }
+
+    async function revalidateAuthOnly() {
+      const status = await getJson("/api/v1/ops/cluster-access/status");
+      const entries = Array.isArray(status.reauth && status.reauth.entries) ? status.reauth.entries : [];
+      const clusters = applyRealmFocus(entries)
+        .map((item) => String(item.cluster || "").trim())
+        .filter((value) => value.length > 0);
+      if (focusOc1El.checked && clusters.length === 0) {
+        statusMessage.textContent = "No AWS1 auth-expired clusters found.";
+        return;
+      }
+      const payload = await getJson("/api/v1/ops/cluster-access/revalidate-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          include_government: includeGovernmentEl.checked,
+          clusters,
+          max_clusters: Math.max(1, clusters.length),
+          persist: true,
+        }),
+      });
+      statusMessage.textContent = `Auth re-validation checked ${payload.checked || 0} cluster(s): ${payload.auth_ok || 0} auth OK, ${payload.auth_failed || 0} still expired, ${payload.auth_not_required || 0} not using security-token auth.`;
+      await refresh();
+    }
+
+    async function applyTargets() {
+      const payload = await getJson("/api/v1/ops/cluster-access/apply-targets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessible_only: true,
+          include_government: includeGovernmentEl.checked,
+        }),
+      });
+      statusMessage.textContent = `Applied ${payload.count || 0} validated cluster target(s) to config/cluster_targets.json.`;
+    }
+
+    async function refreshRealmAuthNow() {
+      const payload = await getJson("/api/v1/ops/cluster-access/refresh-realm-auth", {
+        method: "POST",
+      });
+      const summary = payload.summary || {};
+      statusMessage.textContent = `Realm auth refreshed: ready=${summary.ready || 0}, needs_interactive_login=${summary.needs_interactive_login || 0}.`;
+      await refresh();
+    }
+
+    document.getElementById("btn-refresh").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refresh, { pendingText: "Refreshing..." });
+    });
+    validationFilter.addEventListener("change", () => renderValidation(latestValidationRows));
+    document.getElementById("btn-discover").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, discover, { pendingText: "Discovering..." });
+    });
+    document.getElementById("btn-validate").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, validate, { pendingText: "Validating..." });
+    });
+    document.getElementById("btn-apply").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, applyTargets, { pendingText: "Applying..." });
+    });
+    document.getElementById("btn-refresh-realm-auth").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshRealmAuthNow, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("btn-revalidate").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, revalidateAuthOnly, { pendingText: "Re-validating..." });
+    });
+    refresh();
+  </script>
+{% endblock %}

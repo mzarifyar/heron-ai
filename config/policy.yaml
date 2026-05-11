@@ -1,0 +1,64 @@
+version: "2026-04-22"
+defaults:
+  auto_mitigate: true
+  escalation_required: false
+  require_human_approval: false
+  max_consecutive_actions: 2
+  allowed_actions:
+    - observe_only
+    - restart_component
+    - rollback_latest_deployment
+    - escalate_incident
+    - page_on_call
+  denied_actions: []
+  escalation_policy: "none"
+global:
+  max_consecutive_actions: 2
+severity_rules:
+  sev1:
+    auto_mitigate: false
+    escalation_required: true
+    require_human_approval: false
+    escalation_policy: "page_immediately"
+  sev2:
+    auto_mitigate: true
+    escalation_required: true
+    require_human_approval: true
+    escalation_policy: "escalate_if_unverified"
+  sev3:
+    auto_mitigate: true
+    escalation_required: false
+    require_human_approval: false
+    escalation_policy: "monitor_then_escalate"
+scoped_rules:
+  - match:
+      service: "payments-api"
+      tier: "backend"
+      environment: "prod"
+    settings:
+      max_consecutive_actions: 2
+metric_rules:
+  - metric_name: "cpu_utilization"
+    settings:
+      escalation_required: true
+action_rules:
+  observe_only:
+    action: "observe_only"
+    enabled: true
+    require_human_approval: false
+  restart_component:
+    action: "restart_component"
+    enabled: true
+    require_human_approval: false
+  rollback_latest_deployment:
+    action: "rollback_latest_deployment"
+    enabled: true
+    require_human_approval: true
+  escalate_incident:
+    action: "escalate_incident"
+    enabled: true
+    require_human_approval: false
+  page_on_call:
+    action: "page_on_call"
+    enabled: true
+    require_human_approval: false

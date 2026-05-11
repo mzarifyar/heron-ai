@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Cortex Mission Control{% endblock %}
+{% block header_title %}Cortex Mission Control{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell hero-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Cortex Mission Control</h3>
+        <div class="muted small">Unified command center for Chronicle, pullers, ingest, explainability, and alarm operations.</div>
+      </div>
+      <span id="clock" class="code"></span>
+    </div>
+
+    <div class="row">
+      <button id="btn-refresh" type="button">Refresh All</button>
+      <button id="btn-run-jira" type="button">Run Jira Pull Now</button>
+      <a class="code" href="{{ health_url }}">healthz</a>
+      <a class="code" href="{{ readiness_url }}">readyz</a>
+    </div>
+
+    <div class="split-2">
+      <div class="panel grow">
+        <h4 class="section-heading">System Status</h4>
+        <div id="status-badges" class="row"></div>
+        <table class="grid top-gap-8">
+          <tbody id="system-status-body"></tbody>
+        </table>
+      </div>
+      <div class="panel grow">
+        <h4 class="section-heading">Chronicle Snapshot</h4>
+        <table class="grid">
+          <tbody id="chronicle-summary-body"></tbody>
+        </table>
+        <table class="grid top-gap-8">
+          <tbody id="near-miss-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="split-2">
+      <div class="panel grow">
+        <h4 class="section-heading">Recent Puller Runs</h4>
+        <table class="grid">
+          <thead><tr>
+            <th><span class="field-label">When</span></th>
+            <th><span class="field-label">Source</span></th>
+            <th><span class="field-label">Status</span></th>
+            <th><span class="field-label">Summary</span></th>
+          </tr></thead>
+          <tbody id="runs-body"></tbody>
+        </table>
+      </div>
+      <div class="panel grow">
+        <h4 class="section-heading">Recent Signals</h4>
+        <table class="grid">
+          <thead><tr>
+            <th><span class="field-label">Detected</span></th>
+            <th><span class="field-label">Signal</span></th>
+            <th><span class="field-label">Service</span></th>
+            <th><span class="field-label">Guard</span></th>
+          </tr></thead>
+          <tbody id="signals-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h4 class="section-heading">Recent Explain Events</h4>
+      <table class="grid">
+        <thead><tr>
+          <th><span class="field-label">When</span></th>
+          <th><span class="field-label">Component</span></th>
+          <th><span class="field-label">Type</span></th>
+          <th><span class="field-label">Message</span></th>
+        </tr></thead>
+        <tbody id="explain-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const healthUrl = "{{ health_url }}";
+    const readinessUrl = "{{ readiness_url }}";
+    const pullersStatusUrl = "{{ pullers_status_url }}";
+    const pullersRunsUrl = "{{ pullers_runs_url }}";
+    const signalsUrl = "{{ signals_url }}";
+    const explainEventsUrl = "{{ explain_events_url }}";
+    const reportSummaryUrl = "{{ report_summary_url }}";
+    const nearMissUrl = "{{ near_miss_url }}";
+    const runJiraUrl = "{{ run_jira_url }}";
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+
+    function setClock() {
+      const now = new Date();
+      document.getElementById("clock").textContent = now.toLocaleString();
+    }
+
+    async function getHealth(url) {
+      try {
+        const response = await fetch(url);
+        return response.ok ? "ok" : `http_${response.status}`;
+      } catch (error) {
+        return "down";
+      }
+    }
+
+    function renderBadge(label, value) {
+      const tone = value === "ok" || value === true ? "#155724" : "#7a1f1f";
+      const bg = value === "ok" || value === true ? "#d4edda" : "#f8d7da";
+      const border = value === "ok" || value === true ? "#c3e6cb" : "#f5c6cb";
+      return `<span class="status-chip" style="--chip-border:${border};--chip-bg:${bg};--chip-text:${tone};"><strong>${label}</strong>: ${String(value)}</span>`;
+    }
+
+    function renderRuns(items) {
+      const body = document.getElementById("runs-body");
+      body.innerHTML = "";
+      for (const row of items || []) {
+        const summary = row.summary || {};
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.completed_at || ""}</td>
+          <td>${row.source || ""}</td>
+          <td>${row.status || ""}</td>
+          <td>
+            fetched: ${summary.fetched ?? "-"} |
+            upserted: ${summary.upserted ?? "-"} |
+            errors: ${(summary.errors || []).length}
+          </td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderSignals(items) {
+      const body = document.getElementById("signals-body");
+      body.innerHTML = "";
+      for (const row of items || []) {
+        const context = row.context || {};
+        const annotations = row.annotations || {};
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.detected_at || ""}</td>
+          <td>${row.signal_id || ""}</td>
+          <td>${context.service || ""}</td>
+          <td>${annotations.alarm_status || ""}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderExplain(items) {
+      const body = document.getElementById("explain-body");
+      body.innerHTML = "";
+      for (const row of items || []) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.created_at || ""}</td>
+          <td>${row.component || ""}</td>
+          <td>${row.event_type || ""}</td>
+          <td>${row.message || ""}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    async function refreshAll() {
+      setClock();
+      try {
+        const [health, ready, pullersStatus, runs, signals, explain, report, near] = await Promise.all([
+          getHealth(healthUrl),
+          getHealth(readinessUrl),
+          getJson(pullersStatusUrl),
+          getJson(pullersRunsUrl),
+          getJson(signalsUrl),
+          getJson(explainEventsUrl),
+          getJson(reportSummaryUrl),
+          getJson(nearMissUrl),
+        ]);
+
+        const badges = document.getElementById("status-badges");
+        const jira = (pullersStatus.sources || []).find((s) => s.source === "jira") || {};
+        badges.innerHTML = [
+          renderBadge("healthz", health),
+          renderBadge("readyz", ready),
+          renderBadge("scheduler", pullersStatus.scheduler?.running),
+          renderBadge("jira.last_status", jira.last_status || "never"),
+          renderBadge("jira.next_run", jira.next_run_at || "n/a"),
+        ].join(" ");
+
+        renderKeyValueRows("system-status-body", [
+          ["Scheduler Enabled", pullersStatus.scheduler?.enabled ?? false],
+          ["Scheduler Running", pullersStatus.scheduler?.running ?? false],
+          ["Jira Source Enabled", jira.enabled ?? false],
+          ["Jira Last Status", jira.last_status || "never"],
+          ["Jira Last Run", jira.last_run_at || "n/a"],
+          ["Jira Next Run", jira.next_run_at || "n/a"],
+          ["Jira Last Duration (ms)", jira.last_duration_ms ?? "n/a"],
+        ]);
+        renderRuns(runs.items || []);
+        renderSignals(signals.items || []);
+        renderExplain(explain.items || []);
+        renderKeyValueRows("chronicle-summary-body", [
+          ["Incidents Total", report.incidents_total ?? 0],
+          ["Open Incidents", report.incidents_open ?? 0],
+          ["Resolved Incidents", report.incidents_resolved ?? 0],
+          ["Near-Miss Total", report.near_miss_total ?? 0],
+        ]);
+        const nearItems = near.items || [];
+        const topNear = nearItems.slice(0, 3).map((item) => `${item.incident_id}: ${item.near_miss_count}`).join(" | ") || "none";
+        renderKeyValueRows("near-miss-body", [
+          ["Near-Miss Incidents", near.count ?? 0],
+          ["Top Incidents", topNear],
+        ]);
+      } catch (error) {
+        renderKeyValueRows("system-status-body", [["Error", String(error)]]);
+      }
+    }
+
+    document.getElementById("btn-refresh").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshAll, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("btn-run-jira").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, async () => {
+        await getJson(runJiraUrl, { method: "POST" });
+        await refreshAll();
+      }, { pendingText: "Running Jira..." });
+    });
+
+    setClock();
+    setInterval(setClock, 1000);
+    refreshAll();
+  </script>
+{% endblock %}

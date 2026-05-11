@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+.venv/
+.env
+
+# Build artifacts
+build/
+dist/
+
+# Runtime data (committed only when seeded data should be shared)
+# data/
+
+# macOS
+.DS_Store
+
+# Docker local config
+.docker/
+
+# Node
+frontend/node_modules/
+website/node_modules/

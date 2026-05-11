@@ -1,0 +1,19 @@
+{
+  "logging_mode_enabled": false,
+  "environment": "unknown",
+  "log_file_path": "/logs/runit/caa-cortex/cortex_activity.log",
+  "redaction_patterns": [],
+  "object_storage": {
+    "enabled": false,
+    "namespace": "",
+    "bucket_name": "",
+    "region": "",
+    "object_prefix": "cortex/logging/",
+    "object_name_format": "cortex_activity_{yyyyMMdd}.log",
+    "endpoint_override": ""
+  },
+  "upload_schedule": {
+    "enabled": false,
+    "frequency_minutes": 60
+  }
+}

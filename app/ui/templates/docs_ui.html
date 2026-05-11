@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Cortex API Docs{% endblock %}
+{% block header_title %}Cortex API Docs{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <h3 class="section-title grow">API Documentation</h3>
+      <a href="/docs" target="_blank" rel="noreferrer">Open in New Tab</a>
+    </div>
+    <iframe
+      src="{{ docs_path }}"
+      title="Cortex API Docs"
+      class="docs-frame"
+      loading="lazy"
+    ></iframe>
+  </div>
+{% endblock %}

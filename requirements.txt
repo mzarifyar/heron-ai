@@ -1,0 +1,32 @@
+# Core framework — min versions with Python 3.13 prebuilt wheels
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.9.0
+pydantic-settings>=2.6.0
+python-dotenv>=1.0.1
+python-json-logger>=2.0.7
+
+# HTTP
+requests>=2.31.0
+httpx>=0.27.0
+
+# Templating
+Jinja2>=3.1.4
+
+# Database
+sqlalchemy>=2.0.30
+alembic>=1.13.1
+psycopg2-binary>=2.9.9
+greenlet>=3.0.3
+
+# Config / parsing
+pyyaml>=6.0.1
+
+# Kubernetes (optional — only needed for cluster hygiene puller)
+kubernetes>=29.0.0
+
+anthropic>=0.40.0
+openai>=1.50.0
+
+# Dev / test
+pytest>=8.0.2

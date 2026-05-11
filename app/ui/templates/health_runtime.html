@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Cortex Health Runtime{% endblock %}
+{% block header_title %}Cortex Health Runtime{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Health and Runtime</h3>
+        <div class="muted small">Liveness, readiness, runtime config, and scheduler state.</div>
+      </div>
+      <button id="btn-refresh-runtime" type="button">Refresh</button>
+    </div>
+    <div class="split-2">
+      <div class="panel">
+        <h4 class="section-heading">Probes</h4>
+        <table class="grid"><tbody id="probes-body"></tbody></table>
+      </div>
+      <div class="panel">
+        <h4 class="section-heading">Runtime</h4>
+        <table class="grid"><tbody id="runtime-body"></tbody></table>
+      </div>
+    </div>
+    <div class="panel">
+      <h4 class="section-heading">Pullers</h4>
+      <table class="grid"><tbody id="pullers-body"></tbody></table>
+    </div>
+  </div>
+  <script>
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+
+    async function refreshRuntime() {
+      const [healthz, readyz, runtime] = await Promise.all([
+        getJson("/healthz"),
+        getJson("/readyz"),
+        getJson("/api/v1/ops/runtime"),
+      ]);
+      renderKeyValueRows("probes-body", [
+        ["Healthz", healthz.status || "unknown"],
+        ["Readyz", readyz.status || "unknown"],
+      ]);
+      const app = runtime.app || {};
+      renderKeyValueRows("runtime-body", [
+        ["App", app.name || ""],
+        ["Environment", app.environment || ""],
+        ["Region", app.region || ""],
+        ["Host", app.host || ""],
+        ["Port", app.port || ""],
+        ["Log Level", app.log_level || ""],
+      ]);
+      const scheduler = (runtime.pullers || {}).scheduler || {};
+      renderKeyValueRows("pullers-body", [
+        ["Scheduler Enabled", scheduler.enabled ?? false],
+        ["Scheduler Running", scheduler.running ?? false],
+      ]);
+    }
+
+    document.getElementById("btn-refresh-runtime").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshRuntime, { pendingText: "Refreshing..." });
+    });
+    refreshRuntime();
+  </script>
+{% endblock %}

@@ -1,0 +1,103 @@
+PSEUDOCODE_GUIDE.txt
+====================
+
+Goal: Write pseudocode that is clear enough for Codex to turn into real code with minimal guessing.
+
+1) Start with a header
+- File/Module:
+- Purpose (1 sentence):
+- Inputs:
+- Outputs:
+- Assumptions/Dependencies:
+- Errors/Edge cases:
+
+2) Use consistent structure
+- Prefer: FUNCTION / IF / ELSE / FOR / WHILE / TRY-CATCH
+- Indent blocks. One action per line.
+- Name steps with verbs (Validate, Fetch, Transform, Persist, Return).
+
+3) Specify data shapes (critical for AI)
+- Define key fields and types:
+  - userId: string
+  - items: list<Item>
+  - Item: { id: string, qty: int }
+- Note ordering/uniqueness requirements.
+
+4) Make decisions explicit
+- Write exact conditions:
+  - IF retries > 3 THEN fail
+  - IF status IN {Pending, Running} THEN ...
+- Include timeouts and backoff rules when relevant.
+
+5) Separate “what” from “how”
+- Pseudocode describes intent and flow, not language syntax.
+- Use placeholders for integrations:
+  - CALL Database.query(...)
+  - CALL HttpClient.post(...)
+  - EMIT Metric(...)
+  - LOG Info/Error(...)
+
+6) Include happy path + failure path
+- Show validation failures, missing data, partial results, rollback/cleanup.
+
+7) End with acceptance criteria
+- List 3–8 bullet checks (what “done” means).
+
+Template (copy/paste)
+---------------------
+MODULE <name>
+PURPOSE: <one sentence>
+
+INPUTS:
+- <name>: <type/shape>
+OUTPUTS:
+- <name>: <type/shape>
+
+CONSTANTS:
+- TIMEOUT_MS = <value>
+- MAX_RETRIES = <value>
+
+FUNCTION <main>(<args>):
+  VALIDATE <args>
+  INIT result
+
+  TRY:
+    data = CALL <dependency>(...)
+    transformed = TRANSFORM data USING <rules>
+    CALL <persist_or_side_effect>(transformed)
+    RETURN success(result)
+  CATCH <error_type> AS e:
+    LOG error with context
+    IF retryable AND retries < MAX_RETRIES:
+      WAIT backoff(retries)
+      RETRY
+    RETURN failure(e)
+
+EDGE CASES:
+- <case> -> <expected behavior>
+- <case> -> <expected behavior>
+
+ACCEPTANCE CRITERIA:
+- <check>
+- <check>
+
+Example (short)
+---------------
+FUNCTION build_previsit_summaries(lookback_days, lookahead_days, force):
+  VALIDATE lookback_days >= 0
+  VALIDATE lookahead_days >= 0
+
+  patients = CALL PatientService.list_updated_since(now - lookback_days)
+  FOR each patient IN patients:
+    IF patient.has_opted_out THEN CONTINUE
+
+    existing = CALL SummaryStore.get(patient.id, date_range)
+    IF existing.exists AND NOT force THEN CONTINUE
+
+    events = CALL ClinicalEventAPI.fetch(patient.id, date_range, timeout=TIMEOUT)
+    summary = CALL Summarizer.generate(events)
+
+    CALL SummaryStore.save(patient.id, date_range, summary)
+    EMIT Metric("summary_created", +1)
+
+  RETURN "ok"

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Cortex Cluster Targets{% endblock %}
+{% block header_title %}Cortex Cluster Targets{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Cluster Targets</h3>
+        <div class="muted small">Manage `config/cluster_targets.json` for scheduled cluster housekeeping checks.</div>
+      </div>
+      <button id="btn-refresh-cluster-targets" type="button">Refresh</button>
+      <button id="btn-save-cluster-targets" type="button">Save</button>
+    </div>
+    <label>
+      <span class="field-label">Targets JSON <span class="info-dot" title="List of clusters to inspect for pod health hygiene reports.">i</span></span>
+      <textarea id="cluster-targets-content" rows="20" class="full-width"></textarea>
+    </label>
+    <div id="cluster-targets-status" class="small muted"></div>
+  </div>
+  <script>
+    const { getJson, runButtonAction } = window.CortexUI;
+    const contentEl = document.getElementById("cluster-targets-content");
+    const statusEl = document.getElementById("cluster-targets-status");
+
+    async function refreshTargets() {
+      const payload = await getJson("/api/v1/ops/cluster-targets");
+      contentEl.value = JSON.stringify(payload, null, 2);
+      statusEl.textContent = "Loaded cluster targets.";
+    }
+
+    async function saveTargets() {
+      const response = await fetch("/api/v1/ops/cluster-targets", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: contentEl.value || "{}" }),
+      });
+      const raw = await response.text();
+      let payload = {};
+      if (raw) {
+        try {
+          payload = JSON.parse(raw);
+        } catch (_) {
+          payload = { detail: raw };
+        }
+      }
+      if (!response.ok) {
+        throw new Error(payload.detail || "Failed to save cluster targets");
+      }
+      statusEl.textContent = `Saved ${payload.count || 0} cluster target(s).`;
+    }
+
+    document.getElementById("btn-refresh-cluster-targets").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, refreshTargets, { pendingText: "Refreshing..." });
+    });
+    document.getElementById("btn-save-cluster-targets").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, saveTargets, { pendingText: "Saving..." });
+    });
+
+    refreshTargets();
+  </script>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Cortex Puller Targets{% endblock %}
+{% block header_title %}Cortex Puller Targets{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">DevOps Puller Targets</h3>
+        <div class="muted small">Manage `config/devops_portal_targets.json` without shell edits.</div>
+      </div>
+      <button id="btn-load-targets" type="button">Load</button>
+      <button id="btn-save-targets" type="button">Save</button>
+    </div>
+    <label><span class="field-label">Targets JSON <span class="info-dot" title="List of enabled regions/accounts polled by DevOps puller.">i</span></span>
+      <textarea id="targets-editor" rows="18" class="code"></textarea>
+    </label>
+    <table class="grid"><tbody id="targets-meta-body"></tbody></table>
+  </div>
+  <script>
+    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const editor = document.getElementById("targets-editor");
+
+    async function loadTargets() {
+      const payload = await getJson("/api/v1/ops/devops-targets");
+      editor.value = JSON.stringify(payload, null, 2);
+      const count = Array.isArray(payload.targets) ? payload.targets.length : 0;
+      renderKeyValueRows("targets-meta-body", [["Target Count", count], ["Status", "Loaded"]]);
+    }
+
+    async function saveTargets() {
+      const result = await getJson("/api/v1/ops/devops-targets", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editor.value }),
+      });
+      renderKeyValueRows("targets-meta-body", [
+        ["Saved", result.saved ?? false],
+        ["Path", result.path || ""],
+        ["Target Count", result.count ?? 0],
+      ]);
+    }
+
+    document.getElementById("btn-load-targets").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, loadTargets, { pendingText: "Loading..." });
+    });
+    document.getElementById("btn-save-targets").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, saveTargets, { pendingText: "Saving..." });
+    });
+    loadTargets();
+  </script>
+{% endblock %}

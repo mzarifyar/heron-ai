@@ -1,0 +1,24 @@
+{
+  "targets": [
+    {
+      "name": "PHX Prod Cluster",
+      "cluster": "pc-cluster-1-phx-1",
+      "region": "us-phoenix-1",
+      "account_id": "awsid1.account.aws1..example",
+      "environment": "prod",
+      "service": "cluster-hygiene",
+      "tier": "platform",
+      "enabled": true,
+      "collect_details": true,
+      "collect_top_metrics": true,
+      "collect_events": true,
+      "events_tail_count": 100,
+      "cleanup_evicted_enabled": false,
+      "cleanup_completed_enabled": false,
+      "cleanup_failed_enabled": false,
+      "labels": {
+        "owner": "sre"
+      }
+    }
+  ]
+}

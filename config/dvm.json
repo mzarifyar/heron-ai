@@ -1,0 +1,67 @@
+{
+  "alarm_groups": [
+    {
+      "name": "oomkill_log_analysis",
+      "comment": "Analysis for OOMKilled pods: fetches previous logs from containers that were terminated due to out-of-memory",
+      "action": "oomkill_log_analysis",
+      "component_name": "",
+      "alarm_titles": [
+        "Pods are restarting with OOMKilled in MAX namespace"
+      ]
+    },
+    {
+      "name": "deployment_health_check",
+      "comment": "Mitigation for unhealthy deployments: checks deployment health, inspects pods in CrashLoopBackOff/ImagePullBackOff, captures previous logs, and restarts affected pods",
+      "action": "deployment_health_check",
+      "component_name": "",
+      "alarm_titles": [
+        "One or more replica is not healthy in the deployment"
+      ]
+    },
+    {
+      "name": "restarting_pod_analysis",
+      "comment": "Analysis for Restarting pods: fetches previous logs from containers that were restarted",
+      "action": "restarting_pod_analysis",
+      "component_name": "",
+      "alarm_titles": [
+        "Pods are restarting in MAX namespace"
+      ]
+    },
+    {
+      "name": "daemonset_health_check",
+      "comment": "Mitigation for unhealthy daemonsets: checks daemonset health, inspects pods in CrashLoopBackOff/ImagePullBackOff, captures previous logs, and restarts affected pods",
+      "action": "daemonset_health_check",
+      "component_name": "",
+      "alarm_titles": [
+        "One or more replica is not healthy in the daemonset"
+      ]
+    },
+    {
+      "name": "cluster_pod_recovery",
+      "comment": "Cluster-wide pod remediation: inspects all namespaces for pods stuck in CrashLoopBackOff/ImagePullBackOff/Init states, captures diagnostics, and restarts each pod once",
+      "action": "cluster_pod_recovery",
+      "component_name": "",
+      "alarm_titles": [
+        "One or more pod is down in the cluster"
+      ]
+    },
+    {
+      "name": "evicted_pod_cleanup",
+      "comment": "Removes evicted pods from every namespace to free up capacity when evictions exceed 5% of the cluster",
+      "action": "evicted_pod_cleanup",
+      "component_name": "",
+      "alarm_titles": [
+        "More than 5 percent of the pods are evicted in the cluster"
+      ]
+    },
+    {
+      "name": "resource_usage_cleanup",
+      "comment": "Mitigation for critical resource usage alarms: clears failed pods across all namespaces to reclaim resources",
+      "action": "resource_usage_cleanup",
+      "component_name": "",
+      "alarm_titles": [
+        "Resource Usage Is Critical"
+      ]
+    }
+  ]
+}

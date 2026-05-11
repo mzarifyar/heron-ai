@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Cortex Guard Console{% endblock %}
+{% block header_title %}Cortex Guard Console{% endblock %}
+{% block content %}
+  <div class="panel stack page-shell">
+    <div class="row">
+      <div class="grow">
+        <h3 class="section-title">Alarm Guard Console</h3>
+        <div class="muted small">Check alarm references through verification service.</div>
+      </div>
+      <button id="btn-check-refs" type="button">Run Check</button>
+    </div>
+    <label><span class="field-label">References (one per line) <span class="info-dot" title="Supports alarm URLs, alarm IDs, and mock://status/* values.">i</span></span>
+      <textarea id="refs-editor" rows="8" class="code">mock://status/FIRING
+mock://status/OK</textarea>
+    </label>
+    <table class="grid">
+      <thead>
+        <tr><th>Reference</th><th>Status</th><th>Timestamp</th><th>Age</th><th>Error</th></tr>
+      </thead>
+      <tbody id="guard-results-body"></tbody>
+    </table>
+  </div>
+  <script>
+    const { getJson, runButtonAction, escapeHtml } = window.CortexUI;
+
+    async function runCheck() {
+      const references = (document.getElementById("refs-editor").value || "")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+      const payload = await getJson("/api/v1/ops/guard/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ references }),
+      });
+      const body = document.getElementById("guard-results-body");
+      body.innerHTML = "";
+      for (const row of payload.items || []) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(row.reference || "")}</td>
+          <td>${escapeHtml(row.status || "")}</td>
+          <td>${escapeHtml(row.timestamp || "")}</td>
+          <td>${escapeHtml(row.age || "")}</td>
+          <td>${escapeHtml(row.error || "")}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    document.getElementById("btn-check-refs").addEventListener("click", async (event) => {
+      await runButtonAction(event.currentTarget, runCheck, { pendingText: "Checking..." });
+    });
+    runCheck();
+  </script>
+{% endblock %}
