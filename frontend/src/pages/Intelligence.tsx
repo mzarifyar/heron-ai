@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
-import { BrainCircuit, TrendingUp, AlertCircle, Sparkles } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { BrainCircuit, TrendingUp, AlertCircle, Sparkles, RefreshCw } from 'lucide-react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { useState } from 'react'
 import { getDbLearnSummary, getDbRecommendations, getDbNearMisses } from '../api/dashboard'
 import api from '../api/client'
 
@@ -35,7 +36,12 @@ import { SkeletonCard } from '../components/ui/Skeleton'
 
 const BAR_COLORS = ['#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95']
 
+type GenState = { status: 'idle' } | { status: 'loading' } | { status: 'done'; count: number } | { status: 'error'; message: string }
+
 export default function Intelligence() {
+  const qc = useQueryClient()
+  const [gen, setGen] = useState<GenState>({ status: 'idle' })
+
   const { data: learn, isLoading: learnLoading, error: learnError, refetch: refetchLearn } =
     useQuery({ queryKey: ['db-learn-summary'], queryFn: getDbLearnSummary })
 
@@ -48,11 +54,49 @@ export default function Intelligence() {
   const { data: aiDecisions } =
     useQuery({ queryKey: ['ai-decisions'], queryFn: getAiDecisions, refetchInterval: 15_000 })
 
+  async function handleGenerate() {
+    setGen({ status: 'loading' })
+    try {
+      const res = await api.post('/api/v1/dashboard/intelligence/generate')
+      const count = res.data?.generated ?? 0
+      setGen({ status: 'done', count })
+      qc.invalidateQueries({ queryKey: ['db-recs'] })
+      setTimeout(() => setGen({ status: 'idle' }), 4000)
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setGen({ status: 'error', message: detail ?? 'Generation failed' })
+      setTimeout(() => setGen({ status: 'idle' }), 5000)
+    }
+  }
+
+  const genLabel =
+    gen.status === 'loading' ? 'Generating…' :
+    gen.status === 'done'    ? `${gen.count} insights generated` :
+    gen.status === 'error'   ? gen.message :
+    'Generate Insights'
+
   return (
     <div className="animate-fade-in">
       <PageHeader
         title="Intelligence"
         subtitle="Learn loop, AI recommendations, and near-miss patterns"
+        actions={
+          <button
+            onClick={handleGenerate}
+            disabled={gen.status === 'loading'}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+              gen.status === 'done'  ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10' :
+              gen.status === 'error' ? 'border-rose-500/40 text-rose-400 bg-rose-500/10' :
+              'border-zinc-700 text-zinc-300 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50'
+            }`}
+          >
+            {gen.status === 'loading'
+              ? <RefreshCw className="w-3 h-3 animate-spin" />
+              : <Sparkles className="w-3 h-3" />
+            }
+            {genLabel}
+          </button>
+        }
       />
 
       <div className="p-6 space-y-6">
@@ -144,28 +188,36 @@ export default function Intelligence() {
             ) : !recs?.items.length ? (
               <EmptyState
                 icon={BrainCircuit}
-                title="No recommendations"
-                description="Recommendations appear as the learn loop accumulates outcome data."
+                title="No recommendations yet"
+                description='Click "Generate Insights" above to run the AI analysis.'
               />
             ) : (
               <div className="space-y-2">
-                {recs.items.slice(0, 8).map((rec, i) => (
-                  <div key={rec.id} className="flex items-start gap-3 p-3 bg-zinc-800/50 rounded-lg">
-                    <div className="w-5 h-5 rounded bg-violet-600/20 text-violet-400 flex items-center justify-center text-xs font-bold shrink-0">
-                      {i + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-zinc-300 leading-snug">{rec.rationale}</div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <code className="text-[10px] bg-zinc-800 text-violet-400 px-1.5 py-0.5 rounded">{rec.action}</code>
-                        <span className="text-xs text-zinc-500">{rec.service}</span>
+                {recs.items.slice(0, 8).map((rec, i) => {
+                  const isAi = ['risk_flag', 'pattern', 'structural_review'].includes(rec.action)
+                  return (
+                    <div key={rec.id} className="flex items-start gap-3 p-3 bg-zinc-800/50 rounded-lg">
+                      <div className="w-5 h-5 rounded bg-violet-600/20 text-violet-400 flex items-center justify-center text-xs font-bold shrink-0">
+                        {i + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-zinc-300 leading-snug">{rec.rationale}</div>
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <code className="text-[10px] bg-zinc-800 text-violet-400 px-1.5 py-0.5 rounded">{rec.action}</code>
+                          <span className="text-xs text-zinc-500">{rec.service}</span>
+                          {isAi && (
+                            <span className="flex items-center gap-1 text-[10px] text-violet-400 bg-violet-500/10 border border-violet-500/20 px-1.5 py-0.5 rounded ml-auto">
+                              <Sparkles className="w-2.5 h-2.5" />AI
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold text-emerald-400 tabular-nums shrink-0">
+                        {(rec.confidence * 100).toFixed(0)}%
                       </div>
                     </div>
-                    <div className="text-sm font-semibold text-emerald-400 tabular-nums shrink-0">
-                      {(rec.confidence * 100).toFixed(0)}%
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </Card>
