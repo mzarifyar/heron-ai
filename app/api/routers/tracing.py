@@ -342,6 +342,23 @@ def get_service_graph(db: Session = Depends(get_db)) -> dict[str, Any]:
                 "haproxy": {}, "chronicle": {},
             })
 
+    # tier-N services → downstream LB (e.g. tier-1 → lb-service, tier-2 → lb-database)
+    # These are the cross-tier downward connections that complete the request path.
+    cross_tier = [
+        (TIER_SERVICES[1], "lb-service"),
+        (TIER_SERVICES[2], "lb-database"),
+    ]
+    for svcs, lb_id in cross_tier:
+        for svc in svcs:
+            edges.append({
+                "id": f"{svc}->{lb_id}-down", "edge_type": "cross_tier",
+                "source": svc, "target": lb_id,
+                "sourceHandle": "bottom", "targetHandle": f"top-{svc}",
+                "health": "ok", "rps": 0, "error_rate_pct": 0,
+                "p50_ms": 0, "p95_ms": 0, "p99_ms": 0,
+                "haproxy": {}, "chronicle": {},
+            })
+
     # Same-tier direct edges (e.g. user-profile → auth-service, within tier 1)
     for r in raw_edges:
         src_tier = next((t for t, s in TIER_SERVICES.items() if r.source_service in s), 0)

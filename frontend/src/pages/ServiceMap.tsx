@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  ReactFlow, Background, Controls, MiniMap,
+  ReactFlow, Background, Controls,
   ReactFlowProvider, Panel,
   Handle, Position,
   type NodeProps, type EdgeProps,
@@ -254,6 +254,7 @@ function MapInner() {
       />
 
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+        <style>{`.react-flow__controls-button{width:20px!important;height:20px!important;padding:3px!important}`}</style>
         {isLoading && !graph && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
             justifyContent: 'center', color: '#52525b', fontSize: 13, zIndex: 10 }}>
@@ -269,14 +270,9 @@ function MapInner() {
           defaultEdgeOptions={{ type: 'default' }}
         >
           <Background color="#1a1a1e" gap={32} size={1} />
-          <Controls style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 8 }} />
-          <MiniMap
-            style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 8 }}
-            nodeColor={n => {
-              const d = n.data as any
-              return d?.node_type === 'lb_bar' ? '#8b5cf6' : (HC[d?.health] ?? HC.unknown)
-            }}
-            maskColor="rgba(9,9,11,0.75)"
+          <Controls
+            style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 6 }}
+            showInteractive={false}
           />
           <Panel position="top-left">
             <div style={{
