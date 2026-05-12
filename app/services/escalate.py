@@ -5,10 +5,12 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import uuid
 from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from ..core import get_logger
 from ..integrations import jira
@@ -18,6 +20,23 @@ from ..schemas.escalation import EscalationEvent, EscalationRequest, create_esca
 from .explain import explain_service
 
 logger = get_logger(__name__)
+
+from app.core.paths import config as _cfg
+_POLICY_PATH = Path(_cfg("policy.yaml"))
+
+
+def _channel_is_live(channel_name: str) -> bool:
+    """Return True when policy.yaml escalation_channels says this channel should
+    fire live in the current CORTEX_ENV.  Defaults to False on any error."""
+    try:
+        import yaml  # type: ignore
+        with _POLICY_PATH.open("r", encoding="utf-8") as fh:
+            cfg = yaml.safe_load(fh) or {}
+        env = os.environ.get("CORTEX_ENV", "unknown")
+        ch_cfg = (cfg.get("escalation_channels") or {}).get(channel_name.lower()) or {}
+        return bool((ch_cfg.get("live") or {}).get(env, False))
+    except Exception:
+        return False
 
 
 class EscalationService:
@@ -55,14 +74,16 @@ class EscalationService:
             lines.append(f"Runbooks: {runbooks}")
         return "\n".join(lines)
 
-    def _dispatch(self, event: EscalationEvent, *, dry_run: bool) -> Dict[str, object]:
+    def _dispatch(self, event: EscalationEvent, *, dry_run: Optional[bool]) -> Dict[str, object]:
         """Builds dispatch using local writes or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
         channel = event.channel.name.lower()
         rendered_message = self._structured_message(event)
+        # None = let policy decide; True/False = explicit caller override
+        effective_dry_run = (not _channel_is_live(channel)) if dry_run is None else dry_run
         if channel == "slack":
-            return send_message(target=event.channel.target, message=rendered_message, dry_run=dry_run)
+            return send_message(target=event.channel.target, message=rendered_message, dry_run=effective_dry_run)
         if channel == "pagerduty":
-            return trigger_incident(target=event.channel.target, message=rendered_message, dry_run=dry_run)
+            return trigger_incident(target=event.channel.target, message=rendered_message, dry_run=effective_dry_run)
         if channel == "jira":
             if dry_run:
                 return {"ok": True, "channel": "jira", "status": "planned", "target": event.channel.target}
@@ -76,7 +97,7 @@ class EscalationService:
             return {"ok": ok, "channel": "jira", "status": "created" if ok else "failed", "response": payload}
         return {"ok": False, "channel": channel, "status": "unsupported"}
 
-    def escalate(self, request: EscalationRequest, *, dry_run: bool = True) -> Dict[str, object]:
+    def escalate(self, request: EscalationRequest, *, dry_run: Optional[bool] = None) -> Dict[str, object]:
         """Builds escalate using local writes or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
         if not request.policy_allows:
             return {"status": "suppressed", "reason": "policy_forbidden", "events": []}

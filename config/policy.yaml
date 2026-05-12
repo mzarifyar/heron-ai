@@ -63,6 +63,21 @@ action_rules:
     enabled: true
     require_human_approval: false
 
+# Escalation channel gate — controls whether each channel fires live notifications.
+# Set the env vars (SLACK_WEBHOOK_URL, PAGERDUTY_ROUTING_KEY) then flip live: true
+# here for the environments where you want real pages/messages.
+escalation_channels:
+  slack:
+    live:
+      local: false
+      staging: false    # flip to true once SLACK_WEBHOOK_URL is set
+      prod: false       # flip to true for production alerting
+  pagerduty:
+    live:
+      local: false
+      staging: false    # flip to true once PAGERDUTY_ROUTING_KEY is set
+      prod: false       # flip to true for production on-call paging
+
 # Live execution gate — controls when Reflex moves from simulation to real execution.
 # Safe default: everything off. Flip `enabled: true` and set per-environment/per-action
 # flags when the environment is ready for autonomous action.

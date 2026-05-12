@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import json
 import os
 
@@ -80,7 +80,7 @@ class EscalateRequestIn(BaseModel):
     recovered: bool = False
     dedupe_window_seconds: int = 900
     metadata: Dict[str, object] = Field(default_factory=dict)
-    dry_run: bool = True
+    dry_run: Optional[bool] = None  # None = let escalation_channels policy decide
 
 
 class DiscoveryApplyRequest(BaseModel):
