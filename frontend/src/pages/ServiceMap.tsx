@@ -141,6 +141,11 @@ function ServiceEdgeComponent({ id, sourceX, sourceY, targetX, targetY, sourcePo
         strokeDasharray: isUplink ? '4 6' : undefined,
         transition: 'opacity 0.15s',
       }} />
+      {!isUplink && (
+        <path d={path} fill="none" stroke={color} strokeWidth={width + 1}
+          strokeDasharray="5 10" strokeLinecap="round"
+          style={{ opacity: 0.55, animation: 'flowAnim 1.8s linear infinite', pointerEvents: 'none' }} />
+      )}
       {/* invisible fat hit area for hover */}
       <path d={path} fill="none" stroke="transparent" strokeWidth={16}
         onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
@@ -254,7 +259,10 @@ function MapInner() {
       />
 
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <style>{`.react-flow__controls-button{width:20px!important;height:20px!important;padding:3px!important}`}</style>
+        <style>{`
+          .react-flow__controls-button{width:20px!important;height:20px!important;padding:3px!important}
+          @keyframes flowAnim{from{stroke-dashoffset:15}to{stroke-dashoffset:0}}
+        `}</style>
         {isLoading && !graph && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
             justifyContent: 'center', color: '#52525b', fontSize: 13, zIndex: 10 }}>
