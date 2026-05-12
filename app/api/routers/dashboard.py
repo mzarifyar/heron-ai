@@ -200,6 +200,25 @@ def generate_recommendations(lookback_days: int = 90, db: Session = Depends(get_
     return {"generated": len(items), "items": items}
 
 
+@router.post("/intelligence/generate")
+def generate_intelligence(lookback_days: int = 30) -> dict:
+    """Call the LLM to generate AI insights from Chronicle history.
+
+    Rate-limited to once per hour. Requires HERON_AI_PROVIDER + HERON_AI_API_KEY.
+    Results are persisted to the Recommendation table and immediately visible
+    on the Intelligence page via GET /recommendations.
+    """
+    from ...services.ai.insight_generator import generate_insights, seconds_until_next_run
+    wait = seconds_until_next_run()
+    if wait > 0:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limited — try again in {wait}s (max once per hour).",
+        )
+    return generate_insights(lookback_days=lookback_days)
+
+
 @router.get("/near-misses")
 def near_misses_db(limit: int = 20, db: Session = Depends(get_db)) -> dict:
     """Near-miss events from the database."""

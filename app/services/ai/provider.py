@@ -134,7 +134,7 @@ def get_ai_provider() -> Optional[AIProvider]:
         return None
 
     defaults = {
-        "anthropic": "claude-sonnet-4-5",
+        "anthropic": "claude-sonnet-4-6",
         "openai":    "gpt-4o",
         "ollama":    "llama3",
     }
