@@ -193,6 +193,13 @@ def recommendations_db(db: Session = Depends(get_db)) -> dict:
     return {"items": items, "count": len(items)}
 
 
+@router.post("/recommendations/generate")
+def generate_recommendations(lookback_days: int = 90, db: Session = Depends(get_db)) -> dict:
+    """Derive algorithmic recommendations from LearnOutcome history and persist them."""
+    items = repo.generate_recommendations(db, lookback_days=lookback_days)
+    return {"generated": len(items), "items": items}
+
+
 @router.get("/near-misses")
 def near_misses_db(limit: int = 20, db: Session = Depends(get_db)) -> dict:
     """Near-miss events from the database."""

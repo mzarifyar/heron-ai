@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from typing import Any
+from uuid import uuid4
 
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
@@ -258,6 +259,100 @@ def get_near_misses(db: Session, limit: int = 20) -> list[dict[str, Any]]:
          "detected_at": r.detected_at.isoformat()}
         for r in rows
     ]
+
+
+def generate_recommendations(db: Session, lookback_days: int = 90) -> list[dict[str, Any]]:
+    """Derive data-driven recommendations from LearnOutcome history.
+
+    Four rules (matching the ROADMAP spec):
+    1. Auto-approve candidate  — success_rate > 85% AND count > 5
+    2. Flagged service         — service with > 3 incidents in lookback window
+    3. Failing action          — success_rate < 30% for a specific service (count > 2)
+    4. Pattern match           — same action resolves same service > 80% of time (count > 3)
+    """
+    since = datetime.utcnow() - timedelta(days=lookback_days)
+
+    # ── Outcome stats per action+service ─────────────────────────────────────
+    stats = db.execute(
+        select(
+            LearnOutcome.action_type,
+            LearnOutcome.service,
+            func.count().label("cnt"),
+            func.sum(case((LearnOutcome.outcome == "success", 1), else_=0)).label("wins"),
+        )
+        .where(LearnOutcome.recorded_at >= since)
+        .group_by(LearnOutcome.action_type, LearnOutcome.service)
+    ).all()
+
+    # ── Incident frequency per service ───────────────────────────────────────
+    inc_counts = dict(
+        db.execute(
+            select(Incident.service, func.count().label("n"))
+            .where(Incident.started_at >= since)
+            .group_by(Incident.service)
+        ).all()
+    )
+
+    generated: list[dict[str, Any]] = []
+
+    def _add(service: str, action: str, confidence: float, rationale: str) -> None:
+        generated.append({
+            "service": service, "action_type": action,
+            "confidence": round(confidence, 3), "rationale": rationale,
+        })
+
+    seen: set[tuple[str, str]] = set()
+
+    for r in stats:
+        rate = r.wins / r.cnt if r.cnt else 0.0
+        key  = (r.service, r.action_type)
+
+        # Rule 1 — auto-approve candidate
+        if rate > 0.85 and r.cnt >= 3 and key not in seen:
+            _add(r.service, r.action_type, rate,
+                 f"{r.action_type} succeeds {rate:.0%} of the time for {r.service} "
+                 f"across {r.cnt} incidents — consider adding to auto-approve policy.")
+            seen.add(key)
+
+        # Rule 3 — failing action
+        if rate < 0.30 and r.cnt >= 2 and key not in seen:
+            _add(r.service, r.action_type, 1 - rate,
+                 f"{r.action_type} has only {rate:.0%} success rate for {r.service} "
+                 f"across {r.cnt} attempts — consider removing from this service's policy.")
+            seen.add(key)
+
+        # Rule 4 — dominant pattern
+        if rate > 0.80 and r.cnt >= 2 and key not in seen:
+            _add(r.service, r.action_type, rate,
+                 f"{r.action_type} resolves {r.service} incidents {rate:.0%} of the time "
+                 f"({r.cnt} incidents) — consider setting as default action for this service.")
+            seen.add(key)
+
+    # Rule 2 — flagged services
+    for service, count in inc_counts.items():
+        if count >= 2:
+            generated.append({
+                "service": service, "action_type": "structural_review",
+                "confidence": round(min(0.99, 0.5 + count * 0.05), 3),
+                "rationale": f"{service} has had {count} incidents in the last {lookback_days} days "
+                             f"— flag for structural review.",
+            })
+
+    # Persist to DB (replace existing pending rows to avoid duplicates)
+    db.query(Recommendation).filter(Recommendation.status == "pending").delete()
+    for rec in generated:
+        db.add(Recommendation(
+            id=str(uuid4()),
+            service=rec["service"],
+            action_type=rec["action_type"],
+            confidence=rec["confidence"],
+            rationale=rec["rationale"],
+            status="pending",
+            created_at=datetime.utcnow(),
+        ))
+    db.commit()
+
+    return generated
 
 
 # ── Private helpers ────────────────────────────────────────────────────────
