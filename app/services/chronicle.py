@@ -85,6 +85,7 @@ class ChronicleService:
                 tags=list(tags or []),
             )
             self._incidents[incident_id] = incident
+            self._correlate_deploys(incident)
         else:
             incident.updated_at = datetime.utcnow()
             incident.severity = severity if severity else incident.severity
@@ -94,6 +95,44 @@ class ChronicleService:
                 if tag not in incident.tags:
                     incident.tags.append(tag)
         return incident
+
+    def _correlate_deploys(self, incident: ChronicleIncident) -> None:
+        """On new incident: query for recent GitHub deployments to the same service
+        and add a timeline entry if any are found in the last 30 minutes."""
+        try:
+            from ..db.base import SessionLocal
+            from ..api.routers.github import find_preceding_deploys
+            with SessionLocal() as db:
+                deploys = find_preceding_deploys(
+                    db, incident.service, incident.started_at, lookback_minutes=30
+                )
+            if not deploys:
+                return
+            lines = []
+            for d in deploys:
+                lines.append(
+                    f"  {d['repo']}@{d['sha']} ({d['ref']}) by {d.get('deployer') or 'unknown'}"
+                    f" — {d['minutes_before_incident']:.0f}m before incident"
+                )
+            summary = (
+                f"{len(deploys)} deployment(s) preceded this incident:\n" + "\n".join(lines)
+            )
+            entry = create_timeline_entry(
+                incident.incident_id,
+                component="github",
+                event_type="deploy.correlation",
+                summary=summary,
+                severity="info",
+                correlation_ids={},
+            )
+            self._timeline[incident.incident_id].append(entry)
+            self._append_log({"kind": "timeline", **chronicle_to_dict(entry)})
+            logger.info(
+                "Deploy correlation: %d deploy(s) found for %s within 30m of incident",
+                len(deploys), incident.service,
+            )
+        except Exception as exc:
+            logger.debug("Deploy correlation failed (non-critical): %s", exc)
 
     def ingest_component_event(
         self,

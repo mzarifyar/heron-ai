@@ -214,6 +214,33 @@ class NearMiss(Base):
     detected_at: Mapped[datetime] = mapped_column(DateTime, index=True)
 
 
+# ── GitHub Deployments ────────────────────────────────────────────────────
+
+class GitDeployment(Base):
+    """Records GitHub push and deployment events for incident correlation.
+
+    When an incident opens, Heron looks back N minutes and surfaces any
+    deployments to the same service — surfaced in the incident timeline.
+    """
+    __tablename__ = "git_deployments"
+
+    id:           Mapped[str]      = mapped_column(String(36), primary_key=True)
+    service:      Mapped[str]      = mapped_column(String(100), index=True)
+    repo:         Mapped[str]      = mapped_column(String(200))           # owner/repo
+    ref:          Mapped[str]      = mapped_column(String(255))           # branch or tag
+    sha:          Mapped[str]      = mapped_column(String(40))            # commit SHA
+    environment:  Mapped[str]      = mapped_column(String(50), default="production")
+    deployer:     Mapped[str|None] = mapped_column(String(100), nullable=True)
+    status:       Mapped[str]      = mapped_column(String(20), default="success")  # success/failure/pending
+    commit_msg:   Mapped[str|None] = mapped_column(Text, nullable=True)
+    deployed_at:  Mapped[datetime] = mapped_column(DateTime, index=True)
+    raw_payload:  Mapped[dict|None]= mapped_column(JSON, nullable=True)
+
+    __table_args__ = (
+        Index("ix_gitdeploy_service_ts", "service", "deployed_at"),
+    )
+
+
 # ── Golden Signals ─────────────────────────────────────────────────────────
 
 class ServiceMetricBaseline(Base):
