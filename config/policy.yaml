@@ -62,3 +62,19 @@ action_rules:
     action: "page_on_call"
     enabled: true
     require_human_approval: false
+
+# Live execution gate — controls when Reflex moves from simulation to real execution.
+# Safe default: everything off. Flip `enabled: true` and set per-environment/per-action
+# flags when the environment is ready for autonomous action.
+live_execution:
+  enabled: false            # global kill switch — must be true for any live action to run
+  environments:
+    local: false
+    staging: true           # staging can run live once enabled globally
+    prod: false             # prod requires explicit per-action opt-in below
+  per_action:
+    observe_only: false     # noop — never needs live mode
+    restart_component: true
+    rollback_latest_deployment: false   # high-risk: always dry unless explicitly enabled
+    escalate_incident: true
+    page_on_call: true

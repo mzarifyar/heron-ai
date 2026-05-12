@@ -15,6 +15,7 @@ actions:
     retries: 1
     timeout_seconds: 30
     cooldown_seconds: 30
+    rollback_snapshot: true   # capture deployment manifest before restarting
     fallback:
       - "escalate_incident"
   rollback_latest_deployment:
@@ -23,6 +24,7 @@ actions:
     retries: 1
     timeout_seconds: 45
     cooldown_seconds: 60
+    rollback_snapshot: true   # capture current revision + manifest before undoing
     fallback:
       - "escalate_incident"
   escalate_incident:
