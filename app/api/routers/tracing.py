@@ -180,7 +180,12 @@ def get_service_graph(db: Session = Depends(get_db)) -> dict[str, Any]:
     for r in sig_rows:
         svc_metrics.setdefault(r.service, {})[r.metric_name] = r.v or 0.0
 
-    all_svcs = set(all_services) | set(svc_metrics.keys())
+    # Always include every known service so nodes exist even with no live metrics.
+    # DB data overlays metrics on top; topology is always visible.
+    topology_svcs: set[str] = {"api-gateway"}
+    for svcs in TIER_SERVICES.values():
+        topology_svcs.update(svcs)
+    all_svcs = topology_svcs | set(all_services) | set(svc_metrics.keys())
 
     # ── Service nodes ──────────────────────────────────────────────────────
     nodes = []
