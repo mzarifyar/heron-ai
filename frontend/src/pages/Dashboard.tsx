@@ -210,16 +210,17 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {inc.auto_healed && (
-                      <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
-                        auto-healed
-                      </span>
-                    )}
-                    {inc.mttr_seconds && inc.status === 'resolved' && (
-                      <span className="text-xs text-zinc-500">{fmtMttr(inc.mttr_seconds)}</span>
-                    )}
-                    <Badge variant={severityVariant(inc.severity)}>{inc.severity}</Badge>
-                    <Badge variant={statusVariant(inc.status)} dot>{inc.status}</Badge>
+                    <span className="w-20 text-right">
+                      {inc.auto_healed ? (
+                        <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+                          auto-healed
+                        </span>
+                      ) : inc.mttr_seconds && inc.status === 'resolved' ? (
+                        <span className="text-xs text-zinc-500">{fmtMttr(inc.mttr_seconds)}</span>
+                      ) : null}
+                    </span>
+                    <span className="w-12 text-right"><Badge variant={severityVariant(inc.severity)}>{inc.severity}</Badge></span>
+                    <span className="w-20 text-right"><Badge variant={statusVariant(inc.status)} dot>{inc.status}</Badge></span>
                   </div>
                 </div>
               ))}
