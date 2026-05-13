@@ -1,0 +1,46 @@
+services:
+  node_exporter:
+    display_name: Prometheus Node Exporter
+    default_ports:
+      http: [9100]
+    metrics_exporter:
+      type: self
+      default_port: 9100
+      path: /metrics
+    note: "Port 9200 on some systems where it conflicts with Elasticsearch."
+
+  kafka_exporter:
+    display_name: Kafka Exporter
+    default_ports:
+      http: [9308]
+    metrics_exporter:
+      type: self
+      default_port: 9308
+      path: /metrics
+
+  redis_exporter:
+    display_name: Redis Exporter
+    default_ports:
+      http: [9121]
+    metrics_exporter:
+      type: self
+      default_port: 9121
+      path: /metrics
+
+  postgres_exporter:
+    display_name: Postgres Exporter
+    default_ports:
+      http: [9187]
+    metrics_exporter:
+      type: self
+      default_port: 9187
+      path: /metrics
+
+  blackbox_exporter:
+    display_name: Blackbox Exporter
+    default_ports:
+      http: [9115]
+    metrics_exporter:
+      type: self
+      default_port: 9115
+      path: /metrics

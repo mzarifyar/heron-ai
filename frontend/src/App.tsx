@@ -6,6 +6,7 @@ import Incidents from './pages/Incidents'
 import IncidentDetail from './pages/IncidentDetail'
 import Intelligence from './pages/Intelligence'
 import Integrations from './pages/Integrations'
+import Discovery from './pages/Discovery'
 import Infrastructure from './pages/Infrastructure'
 import ServiceMap from './pages/ServiceMap'
 import Settings from './pages/Settings'
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/incidents/:id" element={<IncidentDetail />} />
         <Route path="/intelligence" element={<Intelligence />} />
         <Route path="/integrations" element={<Integrations />} />
+        <Route path="/discovery" element={<Discovery />} />
         <Route path="/infrastructure" element={<Infrastructure />} />
         <Route path="/service-map" element={<ServiceMap />} />
         <Route path="/settings" element={<Settings />} />

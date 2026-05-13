@@ -1,0 +1,37 @@
+services:
+  prometheus:
+    display_name: Prometheus
+    default_ports:
+      http: [9090, 9091]
+    metrics_exporter:
+      type: self
+      default_port: 9090
+      path: /metrics
+    note: "Often behind a reverse proxy — override path if needed."
+
+  alertmanager:
+    display_name: Alertmanager
+    default_ports:
+      http: [9093]
+    metrics_exporter:
+      type: self
+      default_port: 9093
+      path: /metrics
+
+  grafana:
+    display_name: Grafana
+    default_ports:
+      http: [3000]
+    metrics_exporter:
+      type: self
+      default_port: 3000
+      path: /metrics
+
+  influxdb:
+    display_name: InfluxDB
+    default_ports:
+      http: [8086]
+    metrics_exporter:
+      type: self
+      default_port: 8086
+      path: /metrics

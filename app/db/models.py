@@ -214,6 +214,25 @@ class NearMiss(Base):
     detected_at: Mapped[datetime] = mapped_column(DateTime, index=True)
 
 
+# ── Discovery ─────────────────────────────────────────────────────────────
+
+class DiscoveryScan(Base):
+    """Stores the result of a cloud infrastructure discovery scan."""
+    __tablename__ = "discovery_scans"
+
+    id:           Mapped[str]      = mapped_column(String(36), primary_key=True)
+    cloud:        Mapped[str]      = mapped_column(String(20))           # oci | aws | gcp | azure
+    status:       Mapped[str]      = mapped_column(String(20), default="pending")  # pending|scanning|done|error
+    started_at:   Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    finished_at:  Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
+    resource_count: Mapped[int]    = mapped_column(Integer, default=0)
+    monitored_count: Mapped[int]   = mapped_column(Integer, default=0)
+    unmonitored_count: Mapped[int] = mapped_column(Integer, default=0)
+    error:        Mapped[str|None] = mapped_column(Text, nullable=True)
+    resources:    Mapped[list|None]= mapped_column(JSON, nullable=True)   # full resource list
+    config_used:  Mapped[dict|None]= mapped_column(JSON, nullable=True)   # snapshot of discovery.yaml
+
+
 # ── GitHub Deployments ────────────────────────────────────────────────────
 
 class GitDeployment(Base):

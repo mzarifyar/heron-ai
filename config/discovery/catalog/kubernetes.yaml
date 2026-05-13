@@ -1,0 +1,32 @@
+services:
+  kube_state_metrics:
+    display_name: kube-state-metrics
+    default_ports:
+      http: [8080, 8081]
+    metrics_exporter:
+      type: self
+      default_port: 8080
+      path: /metrics
+
+  cadvisor:
+    display_name: cAdvisor
+    default_ports:
+      http: [8080, 4194]
+    metrics_exporter:
+      type: self
+      default_port: 8080
+      path: /metrics/cadvisor
+
+  kubelet:
+    display_name: Kubelet
+    default_ports:
+      https: [10250]
+      http: [10255]
+    metrics_exporter:
+      type: self
+      default_port: 10255
+      path: /metrics
+
+scan:
+  port_scan_enabled: false          # never port-scan K8s nodes — use service discovery
+  timeout_seconds: 30

@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Activity,
   Network,
+  ScanSearch,
 } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
@@ -21,6 +22,7 @@ const NAV = [
   { to: '/incidents',      icon: AlertTriangle,   label: 'Incidents' },
   { to: '/intelligence',   icon: BrainCircuit,    label: 'Intelligence' },
   { to: '/integrations',   icon: Plug,            label: 'Integrations' },
+  { to: '/discovery',      icon: ScanSearch,      label: 'Discovery' },
   { to: '/infrastructure', icon: Server,          label: 'Infrastructure' },
   { to: '/service-map',    icon: Network,         label: 'Service Map' },
   { to: '/settings',       icon: Settings,        label: 'Settings' },

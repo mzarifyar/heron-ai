@@ -1,0 +1,46 @@
+services:
+  postgres:
+    display_name: PostgreSQL
+    default_ports:
+      pg: [5432]
+    metrics_exporter:
+      type: postgres_exporter
+      default_port: 9187
+      path: /metrics
+
+  mysql:
+    display_name: MySQL / MariaDB
+    default_ports:
+      mysql: [3306]
+    metrics_exporter:
+      type: mysqld_exporter
+      default_port: 9104
+      path: /metrics
+
+  redis:
+    display_name: Redis
+    default_ports:
+      redis: [6379]
+    metrics_exporter:
+      type: redis_exporter
+      default_port: 9121
+      path: /metrics
+
+  mongodb:
+    display_name: MongoDB
+    default_ports:
+      mongo: [27017]
+    metrics_exporter:
+      type: mongodb_exporter
+      default_port: 9216
+      path: /metrics
+
+  elasticsearch:
+    display_name: Elasticsearch
+    default_ports:
+      http: [9200]
+      transport: [9300]
+    metrics_exporter:
+      type: elasticsearch_exporter
+      default_port: 9114
+      path: /metrics

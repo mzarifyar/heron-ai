@@ -1,0 +1,32 @@
+services:
+  kafka:
+    display_name: Apache Kafka
+    default_ports:
+      broker_plain: [9092]
+      broker_ssl: [9093]
+      jmx: [9999]
+    metrics_exporter:
+      type: kafka_exporter
+      default_port: 9308
+      path: /metrics
+    note: "Port is highly variable — override expected in most environments."
+
+  rabbitmq:
+    display_name: RabbitMQ
+    default_ports:
+      amqp: [5672]
+      management: [15672]
+    metrics_exporter:
+      type: self
+      default_port: 15692
+      path: /metrics
+
+  nats:
+    display_name: NATS
+    default_ports:
+      client: [4222]
+      monitoring: [8222]
+    metrics_exporter:
+      type: self
+      default_port: 7777
+      path: /metrics

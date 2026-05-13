@@ -1,0 +1,40 @@
+services:
+  nginx:
+    display_name: Nginx
+    default_ports:
+      http: [80, 8080]
+      https: [443, 8443]
+    metrics_exporter:
+      type: nginx_exporter
+      default_port: 9113
+      path: /metrics
+
+  haproxy:
+    display_name: HAProxy
+    default_ports:
+      http: [80, 443]
+      stats: [8404]
+    metrics_exporter:
+      type: haproxy_exporter
+      default_port: 9101
+      path: /metrics
+
+  traefik:
+    display_name: Traefik
+    default_ports:
+      http: [80]
+      https: [443]
+      dashboard: [8080]
+    metrics_exporter:
+      type: self
+      default_port: 8082
+      path: /metrics
+
+  envoy:
+    display_name: Envoy Proxy
+    default_ports:
+      admin: [9901]
+    metrics_exporter:
+      type: self
+      default_port: 9901
+      path: /stats/prometheus
