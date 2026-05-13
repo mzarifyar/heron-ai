@@ -91,8 +91,8 @@ function ConnectForm({ onStarted }: { onStarted: () => void }) {
             >
               <option value="oci">Oracle Cloud (OCI)</option>
               <option value="aws">AWS</option>
-              <option value="gcp" disabled>GCP (coming soon)</option>
-              <option value="azure" disabled>Azure (coming soon)</option>
+              <option value="gcp">GCP</option>
+              <option value="azure">Azure</option>
             </select>
           </div>
           <div>
@@ -109,12 +109,25 @@ function ConnectForm({ onStarted }: { onStarted: () => void }) {
           {cloud === 'oci' && (
             <>
               <label className="text-xs text-zinc-400 mb-1.5 block">Compartment OCID</label>
-              <input
-                value={compartmentId}
-                onChange={e => setCompartmentId(e.target.value)}
-                placeholder="ocid1.compartment.oc1..aaaa... (leave blank to use demo data)"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500 font-mono"
-              />
+              <input value={compartmentId} onChange={e => setCompartmentId(e.target.value)}
+                placeholder="ocid1.compartment.oc1..aaaa... (leave blank for demo)"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500 font-mono" />
+            </>
+          )}
+          {cloud === 'gcp' && (
+            <>
+              <label className="text-xs text-zinc-400 mb-1.5 block">Project ID</label>
+              <input value={compartmentId} onChange={e => setCompartmentId(e.target.value)}
+                placeholder="my-project-123 (leave blank for demo)"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500" />
+            </>
+          )}
+          {cloud === 'azure' && (
+            <>
+              <label className="text-xs text-zinc-400 mb-1.5 block">Subscription ID</label>
+              <input value={compartmentId} onChange={e => setCompartmentId(e.target.value)}
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (leave blank for demo)"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500 font-mono" />
             </>
           )}
         </div>
