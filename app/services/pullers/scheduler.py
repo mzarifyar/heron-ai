@@ -19,6 +19,8 @@ from .cursor_store import PullerCursorStore
 from .devops_portal_puller import DevOpsPortalPuller
 from .jira_puller import JiraPuller
 from .prometheus_puller import prometheus_puller
+from .cloudwatch_puller import cloudwatch_puller
+from .datadog_puller import datadog_puller
 
 logger = get_logger(__name__)
 
@@ -222,6 +224,47 @@ class PullerManager:
             "cursor": result.next_cursor,
         }
 
+    def _run_generic_puller_once(self, puller: Any, cfg: Any, source_name: str) -> Dict[str, Any]:
+        """Generic helper for any AlertSourceAdapter (CloudWatch, Datadog, etc.)."""
+        from ...schemas.signal import SignalContext, SignalIngestRequest
+        from ..sense import sense_service
+
+        if not puller.is_configured():
+            return {"summary": {"status": "not_configured",
+                                "hint": f"Set {source_name.upper()} credentials in .env"},
+                    "cursor": {}}
+        cursor = self._cursor_store.read_all().get("sources", {}).get(source_name, {})
+        result = puller.pull(
+            range_hours=cfg.range_hours,
+            batch_size=cfg.batch_size,
+            cursor=cursor if isinstance(cursor, dict) else {},
+        )
+        accepted = 0
+        if result.signals:
+            by_service: Dict[str, List] = {}
+            for sig in result.signals:
+                svc = (sig.details or {}).get("service", source_name) \
+                      if isinstance(sig.details, dict) else source_name
+                by_service.setdefault(svc, []).append(sig)
+            for svc, sigs in by_service.items():
+                context = SignalContext(
+                    service=svc, tier="backend", environment="prod",
+                    region="unknown", labels={"source": source_name},
+                )
+                req = SignalIngestRequest(source=source_name, context=context, signals=sigs)
+                try:
+                    r = sense_service.process(req)
+                    accepted += r.accepted
+                except Exception:
+                    pass
+        new_cursor = self._cursor_store.read_all()
+        new_cursor.setdefault("sources", {})[source_name] = result.next_cursor
+        self._cursor_store.write(new_cursor)
+        return {
+            "summary": {"accepted": accepted, "total": len(result.signals), "errors": result.errors},
+            "cursor": result.next_cursor,
+        }
+
     def _execute_source(self, *, name: str, reason: str, force: bool) -> Dict[str, Any]:
         """Builds execute source using local reads or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
         self._refresh_config()
@@ -252,6 +295,10 @@ class PullerManager:
                 details = self._run_cluster_hygiene_once(cfg)
             elif name == "prometheus":
                 details = self._run_prometheus_once(cfg)
+            elif name == "cloudwatch":
+                details = self._run_generic_puller_once(cloudwatch_puller, cfg, "cloudwatch")
+            elif name == "datadog":
+                details = self._run_generic_puller_once(datadog_puller, cfg, "datadog")
             else:
                 raise ValueError(f"Unsupported puller source: {name}")
         except Exception as exc:  # pragma: no cover - defensive

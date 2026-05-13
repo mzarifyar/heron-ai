@@ -38,10 +38,10 @@ _scan_lock = threading.Lock()
 # ── Request / response models ──────────────────────────────────────────────
 
 class ConnectRequest(BaseModel):
-    cloud: str = "oci"
+    cloud: str = "oci"          # oci | aws | gcp | azure
     region: str = ""
-    compartment_id: str = ""
-    demo: bool = False         # force demo scan regardless of credentials
+    compartment_id: str = ""    # OCI only
+    demo: bool = False           # force demo scan regardless of credentials
 
 
 class ConfigRequest(BaseModel):
@@ -57,7 +57,10 @@ class ActivateRequest(BaseModel):
 
 def _run_scan(scan_id: str, cloud: str, region: str, compartment_id: str, demo: bool) -> None:
     from ...db.base import SessionLocal
-    from ...services.discovery.oci.inventory import run_scan
+    if cloud == "aws":
+        from ...services.discovery.aws.inventory import run_scan
+    else:
+        from ...services.discovery.oci.inventory import run_scan
 
     with SessionLocal() as db:
         scan = db.get(DiscoveryScan, scan_id)

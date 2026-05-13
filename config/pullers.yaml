@@ -30,6 +30,23 @@ sources:
     range_hours: 1
     batch_size: 500
     jitter_seconds: 3
+  cloudwatch:
+    # AWS CloudWatch Alarms + Health events.
+    # Uses EC2 instance profile automatically — no keys needed on AWS compute.
+    # CLOUDWATCH_NAMESPACES=AWS/EC2,AWS/RDS,AWS/EKS  (optional filter)
+    enabled: false
+    interval_seconds: 60
+    range_hours: 1
+    batch_size: 200
+    jitter_seconds: 5
+  datadog:
+    # Datadog Monitors + Events API.
+    # Requires DATADOG_API_KEY + DATADOG_APP_KEY in .env.
+    enabled: false
+    interval_seconds: 60
+    range_hours: 1
+    batch_size: 200
+    jitter_seconds: 5
   tracing:
     # Tracing + mesh + eBPF connector scheduler.
     # Runs all configured sources every interval_seconds.

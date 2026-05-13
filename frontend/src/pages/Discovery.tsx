@@ -90,7 +90,7 @@ function ConnectForm({ onStarted }: { onStarted: () => void }) {
               className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-violet-500"
             >
               <option value="oci">Oracle Cloud (OCI)</option>
-              <option value="aws" disabled>AWS (coming soon)</option>
+              <option value="aws">AWS</option>
               <option value="gcp" disabled>GCP (coming soon)</option>
               <option value="azure" disabled>Azure (coming soon)</option>
             </select>
@@ -106,13 +106,17 @@ function ConnectForm({ onStarted }: { onStarted: () => void }) {
           </div>
         </div>
         <div>
-          <label className="text-xs text-zinc-400 mb-1.5 block">Compartment OCID</label>
-          <input
-            value={compartmentId}
-            onChange={e => setCompartmentId(e.target.value)}
-            placeholder="ocid1.compartment.oc1..aaaa... (leave blank to use demo data)"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500 font-mono"
-          />
+          {cloud === 'oci' && (
+            <>
+              <label className="text-xs text-zinc-400 mb-1.5 block">Compartment OCID</label>
+              <input
+                value={compartmentId}
+                onChange={e => setCompartmentId(e.target.value)}
+                placeholder="ocid1.compartment.oc1..aaaa... (leave blank to use demo data)"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500 font-mono"
+              />
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2.5">
           <input
