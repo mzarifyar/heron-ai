@@ -86,6 +86,7 @@ class ChronicleService:
             )
             self._incidents[incident_id] = incident
             self._correlate_deploys(incident)
+            self._surface_blast_radius(incident)
         else:
             incident.updated_at = datetime.utcnow()
             incident.severity = severity if severity else incident.severity
@@ -95,6 +96,27 @@ class ChronicleService:
                 if tag not in incident.tags:
                     incident.tags.append(tag)
         return incident
+
+    def _surface_blast_radius(self, incident: ChronicleIncident) -> None:
+        """On new incident: surface which services may be affected via the dependency graph."""
+        try:
+            from ..services.tracing.graph import surface_blast_radius
+            summary = surface_blast_radius(incident.service, incident.incident_id)
+            if not summary:
+                return
+            entry = create_timeline_entry(
+                incident.incident_id,
+                component="graph",
+                event_type="dependency.blast_radius",
+                summary=f"Blast radius analysis for {incident.service}:\n{summary}",
+                severity="info",
+                correlation_ids={},
+            )
+            self._timeline[incident.incident_id].append(entry)
+            self._append_log({"kind": "timeline", **chronicle_to_dict(entry)})
+            logger.info("Blast radius surfaced for incident %s (%s)", incident.incident_id, incident.service)
+        except Exception as exc:
+            logger.debug("Blast radius surface failed (non-critical): %s", exc)
 
     def _correlate_deploys(self, incident: ChronicleIncident) -> None:
         """On new incident: query for recent GitHub deployments to the same service

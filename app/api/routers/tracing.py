@@ -526,3 +526,35 @@ def get_critical_paths(max_paths: int = 7, db: Session = Depends(get_db)) -> dic
         "total_found": len(unique),
         "computed_at": datetime.utcnow().isoformat(),
     }
+
+
+@router.get("/dependencies/{service}")
+def get_service_dependencies(service: str) -> dict[str, Any]:
+    """Return upstream, downstream, and blast radius for a service from the live graph."""
+    from ...services.tracing.graph import get_graph
+    g = get_graph()
+    return {
+        "service": service,
+        "upstream":     g.upstream(service),
+        "downstream":   g.downstream(service),
+        "blast_radius": g.blast_radius(service),
+        "direct_edges": g.edges_for(service),
+        "graph_summary": g.summary(),
+    }
+
+
+@router.get("/graph/summary")
+def get_graph_summary() -> dict[str, Any]:
+    """Return the full service dependency graph summary and service list."""
+    from ...services.tracing.graph import get_graph
+    g = get_graph()
+    return g.summary()
+
+
+@router.post("/graph/refresh")
+def refresh_graph() -> dict[str, Any]:
+    """Trigger an immediate rebuild of the service dependency graph."""
+    from ...services.tracing.graph import get_graph
+    g = get_graph()
+    g.build()
+    return g.summary()

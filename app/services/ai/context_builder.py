@@ -46,6 +46,7 @@ def build_context(
         "learn_scores": _format_learn_scores(learn_scores),
         "policy_summary": _policy_summary(),
         "available_actions": _available_actions(),
+        "service_dependencies": _service_dependencies(service),
     }
 
 
@@ -169,3 +170,21 @@ def _available_actions() -> list[str]:
         logger.debug("Context: actions load failed: %s", exc)
         return ["restart_component", "rollback_latest_deployment",
                 "escalate_incident", "page_on_call", "observe_only"]
+
+
+def _service_dependencies(service: str) -> dict[str, Any]:
+    """Return upstream/downstream services from the live dependency graph."""
+    try:
+        from ..tracing.graph import get_graph
+        g = get_graph()
+        upstream   = list(g.upstream(service, max_depth=3).keys())
+        downstream = list(g.downstream(service, max_depth=3).keys())
+        blast      = g.blast_radius(service)["affected_services"]
+        return {
+            "upstream":   upstream[:10],
+            "downstream": downstream[:10],
+            "blast_radius": blast[:10],
+        }
+    except Exception as exc:
+        logger.debug("Context: dependency graph unavailable: %s", exc)
+        return {"upstream": [], "downstream": [], "blast_radius": []}

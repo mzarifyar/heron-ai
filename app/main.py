@@ -115,6 +115,12 @@ def create_app() -> FastAPI:
                 tracing_scheduler.start(interval_seconds=_tracing_cfg.get("interval_seconds", 30))
         except Exception as _exc:
             logger.debug("Tracing scheduler not started: %s", _exc)
+        # Start service dependency graph refresh (every 5 minutes)
+        try:
+            from .services.tracing.graph import start_refresh as _start_graph_refresh
+            _start_graph_refresh(interval_minutes=5)
+        except Exception as _exc:
+            logger.debug("Graph refresh not started: %s", _exc)
 
     @app.on_event("shutdown")
     def _stop_background_pullers() -> None:
