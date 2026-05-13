@@ -570,6 +570,74 @@ def put_config(name: str, update: TextConfigUpdate) -> Dict[str, Any]:
     return {"saved": True, "name": name, "path": str(path)}
 
 
+@router.post("/config/policy/preview")
+def preview_policy(update: TextConfigUpdate) -> Dict[str, Any]:
+    """Parse a proposed policy.yaml and return a structured preview without saving.
+
+    Shows which actions would be auto-approved, which require human approval,
+    and which are denied — useful for validating changes before committing.
+    """
+    try:
+        cfg = _validate_yaml_content(update.content)
+    except HTTPException as exc:
+        return {"valid": False, "error": str(exc.detail)}
+
+    defaults  = cfg.get("defaults", {}) or {}
+    sev_rules = cfg.get("severity_rules", {}) or {}
+    act_rules = cfg.get("action_rules", {}) or {}
+    live_exec = cfg.get("live_execution", {}) or {}
+    esc_ch    = cfg.get("escalation_channels", {}) or {}
+
+    # Summarise per-action approval status
+    action_summary = []
+    for action_name, rule in act_rules.items():
+        if isinstance(rule, dict):
+            action_summary.append({
+                "action": action_name,
+                "enabled": rule.get("enabled", True),
+                "requires_approval": rule.get("require_human_approval", False),
+            })
+
+    # Summarise live execution per environment
+    live_envs = (live_exec.get("environments") or {}) if live_exec.get("enabled") else {}
+    live_actions = [k for k, v in (live_exec.get("per_action") or {}).items() if v] \
+                   if live_exec.get("enabled") else []
+
+    # Summarise escalation channels
+    channels_live = {}
+    for ch, ch_cfg in esc_ch.items():
+        if isinstance(ch_cfg, dict):
+            live = ch_cfg.get("live") or {}
+            channels_live[ch] = {env: v for env, v in live.items() if v}
+
+    return {
+        "valid": True,
+        "summary": {
+            "auto_mitigate": defaults.get("auto_mitigate", True),
+            "max_consecutive_actions": defaults.get("max_consecutive_actions", 2),
+            "allowed_actions": defaults.get("allowed_actions", []),
+            "denied_actions": defaults.get("denied_actions", []),
+        },
+        "severity_rules": {
+            sev: {
+                "auto_mitigate": r.get("auto_mitigate"),
+                "require_human_approval": r.get("require_human_approval"),
+                "escalation_policy": r.get("escalation_policy"),
+            }
+            for sev, r in sev_rules.items() if isinstance(r, dict)
+        },
+        "action_rules": action_summary,
+        "live_execution": {
+            "enabled": live_exec.get("enabled", False),
+            "live_environments": [env for env, v in live_envs.items() if v],
+            "live_actions": live_actions,
+        },
+        "escalation_channels": {
+            ch: list(envs.keys()) for ch, envs in channels_live.items()
+        },
+    }
+
+
 @router.get("/control-plane")
 def get_control_plane() -> Dict[str, Any]:
     """Gets control plane using local state or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
