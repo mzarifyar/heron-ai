@@ -57,26 +57,30 @@ class ActivateRequest(BaseModel):
 
 def _run_scan(scan_id: str, cloud: str, region: str, compartment_id: str, demo: bool) -> None:
     from ...db.base import SessionLocal
-    if cloud == "aws":
-        from ...services.discovery.aws.inventory import run_scan
-    elif cloud == "gcp":
-        from ...services.discovery.gcp.inventory import run_scan
-    elif cloud == "azure":
-        from ...services.discovery.azure.inventory import run_scan
-    else:
-        from ...services.discovery.oci.inventory import run_scan
 
     with SessionLocal() as db:
         scan = db.get(DiscoveryScan, scan_id)
         if not scan:
+            _scan_lock.release()
             return
         scan.status = "scanning"
         db.commit()
 
     try:
-        result = run_scan(region=region, compartment_id=compartment_id, demo=demo)
-        resources = [r.to_dict() for r in result.resources]
+        if cloud == "aws":
+            from ...services.discovery.aws.inventory import run_scan
+            result = run_scan(region=region, demo=demo)
+        elif cloud == "gcp":
+            from ...services.discovery.gcp.inventory import run_scan
+            result = run_scan(region=region, demo=demo)
+        elif cloud == "azure":
+            from ...services.discovery.azure.inventory import run_scan
+            result = run_scan(region=region, demo=demo)
+        else:
+            from ...services.discovery.oci.inventory import run_scan
+            result = run_scan(region=region, compartment_id=compartment_id, demo=demo)
 
+        resources = [r.to_dict() for r in result.resources]
         with SessionLocal() as db:
             scan = db.get(DiscoveryScan, scan_id)
             if scan:
