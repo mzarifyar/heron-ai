@@ -39,3 +39,29 @@ actions:
     retries: 0
     timeout_seconds: 20
     cooldown_seconds: 10
+  argocd_rollback:
+    type: "api"
+    command: "argocd://rollback/{service}"
+    retries: 1
+    timeout_seconds: 60
+    cooldown_seconds: 120
+    rollback_snapshot: false   # ArgoCD handles its own history
+    fallback:
+      - "rollback_latest_deployment"
+      - "escalate_incident"
+  argocd_sync:
+    type: "api"
+    command: "argocd://sync/{service}"
+    retries: 1
+    timeout_seconds: 60
+    cooldown_seconds: 30
+    fallback:
+      - "escalate_incident"
+  flux_reconcile:
+    type: "api"
+    command: "flux://reconcile/{service}"
+    retries: 1
+    timeout_seconds: 60
+    cooldown_seconds: 60
+    fallback:
+      - "escalate_incident"

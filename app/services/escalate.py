@@ -84,6 +84,16 @@ class EscalationService:
             return send_message(target=event.channel.target, message=rendered_message, dry_run=effective_dry_run)
         if channel == "pagerduty":
             return trigger_incident(target=event.channel.target, message=rendered_message, dry_run=effective_dry_run)
+        if channel == "teams":
+            from ..integrations.teams import send_message as teams_send
+            return teams_send(
+                target=event.channel.target,
+                message=rendered_message,
+                severity=event.severity,
+                service=event.service,
+                incident_id=event.incident_key or "",
+                dry_run=effective_dry_run,
+            )
         if channel == "jira":
             if dry_run:
                 return {"ok": True, "channel": "jira", "status": "planned", "target": event.channel.target}

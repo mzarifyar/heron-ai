@@ -77,6 +77,11 @@ escalation_channels:
       local: false
       staging: false    # flip to true once PAGERDUTY_ROUTING_KEY is set
       prod: false       # flip to true for production on-call paging
+  teams:
+    live:
+      local: false
+      staging: false    # flip to true once TEAMS_WEBHOOK_URL is set
+      prod: false       # flip to true for production Microsoft Teams alerts
 
 # Live execution gate — controls when Reflex moves from simulation to real execution.
 # Safe default: everything off. Flip `enabled: true` and set per-environment/per-action

@@ -164,6 +164,10 @@ class ApiExecutor:
                 return self._dispatch_pager(rest, parameters)
             if scheme == "incident":
                 return self._dispatch_incident(rest, parameters)
+            if scheme == "argocd":
+                return self._dispatch_argocd(rest, parameters)
+            if scheme == "flux":
+                return self._dispatch_flux(rest, parameters)
 
         # Generic HTTP POST
         return self._dispatch_http(command, timeout_seconds, parameters)
@@ -211,6 +215,41 @@ class ApiExecutor:
             }
         except Exception as exc:
             return {"success": False, "details": str(exc), "executor": "api", "command": url}
+
+    @staticmethod
+    def _dispatch_argocd(path: str, parameters: Dict[str, object]) -> Dict[str, object]:
+        try:
+            from app.integrations import argocd
+            parts   = path.split("/", 1)
+            action  = parts[0]  # rollback | sync
+            service = parts[1] if len(parts) > 1 else str(parameters.get("service", ""))
+            # Prefer explicit app name from parameters; fall back to service-name lookup
+            app_name = str(parameters.get("argocd_app", "")) or argocd.find_app_for_service(service) or service
+            if action == "rollback":
+                result = argocd.rollback(app_name, revision=int(parameters.get("revision", 0)))
+            else:
+                result = argocd.sync(app_name, revision=str(parameters.get("revision", "HEAD")))
+            return {"success": result.get("ok", False), "details": result.get("status", "dispatched"),
+                    "executor": "api", "result": result}
+        except Exception as exc:
+            return {"success": False, "details": str(exc), "executor": "api", "command": f"argocd://{path}"}
+
+    @staticmethod
+    def _dispatch_flux(path: str, parameters: Dict[str, object]) -> Dict[str, object]:
+        try:
+            from app.integrations import flux
+            parts    = path.split("/", 1)
+            action   = parts[0]   # reconcile | suspend
+            resource = parts[1] if len(parts) > 1 else str(parameters.get("service", ""))
+            kind     = str(parameters.get("flux_kind", "kustomization"))
+            if action == "suspend":
+                result = flux.suspend(resource, kind=kind)
+            else:
+                result = flux.trigger_reconcile(resource, resource_kind=kind)
+            return {"success": result.get("ok", False), "details": result.get("status", "dispatched"),
+                    "executor": "api", "result": result}
+        except Exception as exc:
+            return {"success": False, "details": str(exc), "executor": "api", "command": f"flux://{path}"}
 
 
 class WorkflowExecutor:
