@@ -19,12 +19,13 @@ except Exception:
     pass  # dotenv optional — fall back to shell environment
 
 from .core import configure_logging, get_logger, get_settings
-from .api import chronicle, dashboard, discovery, explain, github, golden_signals, health, tracing, jira_auth, jobs, ops, pullers, signals
+from .api import chronicle, dashboard, discovery, explain, github, golden_signals, health, otlp, tracing, jira_auth, jobs, ops, pullers, signals
 from .db.base import init_db
 from .services.cluster_access import cluster_access_service
 from .services.demo import demo_runner
 from .services.golden_signals import golden_signals_collector
 from .services.pullers.scheduler import puller_manager
+from .services.tracing.scheduler import tracing_scheduler
 
 FRONTEND_DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
 
     app.include_router(chronicle.router)
     app.include_router(github.router)
+    app.include_router(otlp.router)
     app.include_router(dashboard.router, prefix="/api/v1")
     app.include_router(discovery.router, prefix="/api/v1")
     app.include_router(golden_signals.router, prefix="/api/v1")
@@ -102,9 +104,21 @@ def create_app() -> FastAPI:
         cluster_access_service.start_realm_auth_monitor()
         demo_runner.start()
         golden_signals_collector.start()
+        # Start tracing connector scheduler if enabled in pullers.yaml
+        try:
+            import yaml as _yaml
+            from .core.paths import config as _cfg_path
+            from pathlib import Path as _Path
+            _pullers_cfg = _yaml.safe_load(_Path(_cfg_path("pullers.yaml")).read_text()) or {}
+            _tracing_cfg = (_pullers_cfg.get("sources") or {}).get("tracing", {})
+            if _tracing_cfg.get("enabled"):
+                tracing_scheduler.start(interval_seconds=_tracing_cfg.get("interval_seconds", 30))
+        except Exception as _exc:
+            logger.debug("Tracing scheduler not started: %s", _exc)
 
     @app.on_event("shutdown")
     def _stop_background_pullers() -> None:
+        tracing_scheduler.stop()
         golden_signals_collector.stop()
         demo_runner.stop()
         cluster_access_service.stop_realm_auth_monitor()

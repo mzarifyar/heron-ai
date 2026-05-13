@@ -30,3 +30,13 @@ sources:
     range_hours: 1
     batch_size: 500
     jitter_seconds: 3
+  tracing:
+    # Tracing + mesh + eBPF connector scheduler.
+    # Runs all configured sources every interval_seconds.
+    # With no env vars set, runs eBPF demo mode to feed the service map.
+    # Set enabled: true once any of the env vars below are configured:
+    #   PIXIE_API_KEY + PIXIE_CLUSTER_ID   — eBPF via Pixie
+    #   MESH_PROMETHEUS_URL                — Istio / Linkerd / Cilium
+    #   JAEGER_URL / ZIPKIN_URL / TEMPO_URL — distributed tracing
+    enabled: false
+    interval_seconds: 30
