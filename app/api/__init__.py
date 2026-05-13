@@ -2,6 +2,6 @@
 
 """
 
-from .routers import chronicle, dashboard, discovery, explain, github, golden_signals, health, otlp, tracing, jira_auth, jobs, ops, pullers, signals
+from .routers import chronicle, dashboard, discovery, explain, github, golden_signals, health, otlp, slack_bot, tracing, jira_auth, jobs, ops, pullers, signals
 
-__all__ = ["chronicle", "dashboard", "discovery", "explain", "github", "golden_signals", "health", "otlp", "tracing", "jira_auth", "jobs", "ops", "pullers", "signals"]
+__all__ = ["chronicle", "dashboard", "discovery", "explain", "github", "golden_signals", "health", "otlp", "slack_bot", "tracing", "jira_auth", "jobs", "ops", "pullers", "signals"]
