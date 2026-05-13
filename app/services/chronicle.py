@@ -87,6 +87,7 @@ class ChronicleService:
             self._incidents[incident_id] = incident
             self._correlate_deploys(incident)
             self._surface_blast_radius(incident)
+            self._surface_runbooks(incident)
         else:
             incident.updated_at = datetime.utcnow()
             incident.severity = severity if severity else incident.severity
@@ -117,6 +118,40 @@ class ChronicleService:
             logger.info("Blast radius surfaced for incident %s (%s)", incident.incident_id, incident.service)
         except Exception as exc:
             logger.debug("Blast radius surface failed (non-critical): %s", exc)
+
+    def _surface_runbooks(self, incident: ChronicleIncident) -> None:
+        """On new incident: find matching runbooks and add a timeline entry."""
+        try:
+            from ..services.runbook_resolver import surface_runbooks_for_incident
+            summary_text = incident.summary or ""
+            # Try to extract metric name from summary
+            metric = ""
+            import re as _re
+            m = _re.search(r"(\w+_\w+)", summary_text)
+            if m:
+                metric = m.group(1)
+            result = surface_runbooks_for_incident(
+                service=incident.service,
+                metric_name=metric,
+                summary=summary_text,
+                severity=incident.severity,
+                incident_id=incident.incident_id,
+            )
+            if not result:
+                return
+            entry = create_timeline_entry(
+                incident.incident_id,
+                component="runbook",
+                event_type="runbook.matched",
+                summary=result,
+                severity="info",
+                correlation_ids={},
+            )
+            self._timeline[incident.incident_id].append(entry)
+            self._append_log({"kind": "timeline", **chronicle_to_dict(entry)})
+            logger.info("Runbook surfaced for incident %s (%s)", incident.incident_id, incident.service)
+        except Exception as exc:
+            logger.debug("Runbook surface failed (non-critical): %s", exc)
 
     def _correlate_deploys(self, incident: ChronicleIncident) -> None:
         """On new incident: query for recent GitHub deployments to the same service

@@ -19,7 +19,7 @@ except Exception:
     pass  # dotenv optional — fall back to shell environment
 
 from .core import configure_logging, get_logger, get_settings
-from .api import chronicle, dashboard, discovery, explain, github, golden_signals, health, otlp, slack_bot, tracing, jira_auth, jobs, ops, pullers, signals
+from .api import chronicle, dashboard, discovery, explain, github, golden_signals, health, otlp, slack_bot, slo, tracing, jira_auth, jobs, ops, pullers, signals
 from .db.base import init_db
 from .services.cluster_access import cluster_access_service
 from .services.demo import demo_runner
@@ -53,6 +53,8 @@ def create_app() -> FastAPI:
     app.include_router(github.router)
     app.include_router(otlp.router)
     app.include_router(slack_bot.router)
+    app.include_router(slo.router, prefix="/api/v1")
+    app.include_router(slo.runbook_router, prefix="/api/v1")
     app.include_router(dashboard.router, prefix="/api/v1")
     app.include_router(discovery.router, prefix="/api/v1")
     app.include_router(golden_signals.router, prefix="/api/v1")

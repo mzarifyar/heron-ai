@@ -214,6 +214,57 @@ class NearMiss(Base):
     detected_at: Mapped[datetime] = mapped_column(DateTime, index=True)
 
 
+# ── SLO / Error Budget ────────────────────────────────────────────────────
+
+class ServiceSLO(Base):
+    """SLO definition for a service — target, window, metric."""
+    __tablename__ = "service_slos"
+
+    id:            Mapped[str]      = mapped_column(String(36), primary_key=True)
+    service:       Mapped[str]      = mapped_column(String(100), index=True)
+    name:          Mapped[str]      = mapped_column(String(200))          # e.g. "API Availability"
+    metric_name:   Mapped[str]      = mapped_column(String(100))          # e.g. "error_rate"
+    target:        Mapped[float]    = mapped_column(Float)                # e.g. 0.999 (99.9%)
+    window_days:   Mapped[int]      = mapped_column(Integer, default=30)
+    alert_threshold: Mapped[float]  = mapped_column(Float, default=0.10)  # alert at 10% budget remaining
+    description:   Mapped[str|None] = mapped_column(Text, nullable=True)
+    enabled:       Mapped[bool]     = mapped_column(Boolean, default=True)
+    created_at:    Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at:    Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class SLOBurnEvent(Base):
+    """Records a point-in-time error budget burn observation."""
+    __tablename__ = "slo_burn_events"
+
+    id:              Mapped[str]      = mapped_column(String(36), primary_key=True)
+    slo_id:          Mapped[str]      = mapped_column(String(36), index=True)
+    service:         Mapped[str]      = mapped_column(String(100), index=True)
+    error_rate:      Mapped[float]    = mapped_column(Float)              # observed error rate
+    budget_remaining: Mapped[float]   = mapped_column(Float)              # fraction remaining (0-1)
+    burn_rate:       Mapped[float]    = mapped_column(Float, default=0.0) # how fast budget is depleting
+    recorded_at:     Mapped[datetime] = mapped_column(DateTime, index=True)
+    alert_fired:     Mapped[bool]     = mapped_column(Boolean, default=False)
+
+
+# ── Runbooks ───────────────────────────────────────────────────────────────
+
+class Runbook(Base):
+    """Indexed runbook — sourced from local markdown, Confluence, or Notion."""
+    __tablename__ = "runbooks"
+
+    id:          Mapped[str]      = mapped_column(String(36), primary_key=True)
+    title:       Mapped[str]      = mapped_column(String(500), index=True)
+    service:     Mapped[str|None] = mapped_column(String(100), nullable=True, index=True)
+    severity:    Mapped[str|None] = mapped_column(String(10), nullable=True)
+    tags:        Mapped[list|None]= mapped_column(JSON, nullable=True)     # ["oom", "connection_pool"]
+    source:      Mapped[str]      = mapped_column(String(50))              # local | confluence | notion
+    source_url:  Mapped[str|None] = mapped_column(String(1000), nullable=True)
+    content:     Mapped[str|None] = mapped_column(Text, nullable=True)     # markdown content
+    keywords:    Mapped[str|None] = mapped_column(Text, nullable=True)     # space-separated for search
+    indexed_at:  Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 # ── Discovery ─────────────────────────────────────────────────────────────
 
 class DiscoveryScan(Base):

@@ -7,6 +7,7 @@ import IncidentDetail from './pages/IncidentDetail'
 import Intelligence from './pages/Intelligence'
 import Integrations from './pages/Integrations'
 import Discovery from './pages/Discovery'
+import SLOPage from './pages/SLO'
 import Infrastructure from './pages/Infrastructure'
 import ServiceMap from './pages/ServiceMap'
 import Settings from './pages/Settings'
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/intelligence" element={<Intelligence />} />
         <Route path="/integrations" element={<Integrations />} />
         <Route path="/discovery" element={<Discovery />} />
+        <Route path="/slo" element={<SLOPage />} />
         <Route path="/infrastructure" element={<Infrastructure />} />
         <Route path="/service-map" element={<ServiceMap />} />
         <Route path="/settings" element={<Settings />} />
