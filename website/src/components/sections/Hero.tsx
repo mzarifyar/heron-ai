@@ -38,9 +38,9 @@ export default function Hero() {
         />
       </div>
 
-      {/* Floating heron mark */}
-      <div className="absolute right-[8%] top-[20%] opacity-[0.07] hidden lg:block" style={{ animation: 'float 8s ease-in-out infinite' }}>
-        <HeronMark size={280} />
+      {/* Floating logo */}
+      <div className="absolute right-[6%] top-[16%] opacity-[0.18] hidden lg:block" style={{ animation: 'float 8s ease-in-out infinite' }}>
+        <img src="/logo.png" alt="" aria-hidden="true" style={{ width: 260, borderRadius: 16, objectFit: 'cover' }} />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-32 pb-24">

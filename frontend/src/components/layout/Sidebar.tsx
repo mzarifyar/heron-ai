@@ -42,9 +42,7 @@ export default function Sidebar() {
       )}
     >
       <div className="flex items-center gap-2.5 px-3 py-4 border-b border-zinc-800 min-h-[56px]">
-        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-violet-600 shrink-0">
-          <Activity className="w-4 h-4 text-white" />
-        </div>
+        <img src="/logo.png" alt="Heron AI" className="w-7 h-7 rounded-md object-cover shrink-0" />
         {!collapsed && (
           <div className="flex items-baseline gap-[3px] animate-fade-in">
             <span className="font-semibold text-zinc-100 tracking-tight text-sm">Heron</span>

@@ -91,7 +91,11 @@ export function HeronWordmark({ size = 28 }: { size?: number }) {
 export default function Logo({ size = 36, showWordmark = true, className = '' }: LogoProps) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <HeronMark size={size} />
+      <img
+        src="/logo.png"
+        alt="Heron AI"
+        style={{ height: size, width: 'auto', borderRadius: 6, objectFit: 'cover' }}
+      />
       {showWordmark && (
         <div className="flex flex-col leading-none">
           <HeronWordmark size={size * 0.7} />
