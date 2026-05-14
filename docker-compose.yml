@@ -12,6 +12,7 @@ services:
     volumes:
       - ./data:/app/data
       - ./config:/app/config:ro
+      - ./docs/runbooks:/app/docs/runbooks:ro
       - ../bots-terraform:/workspace/bots-terraform:ro
       - ${HOME}/.kube:/root/.kube:ro
       - ${HOME}/.aws:/root/.aws:ro
