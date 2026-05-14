@@ -130,6 +130,14 @@ class DecisionEngine:
                 "LLM decision used: service=%s severity=%s confidence=%.2f",
                 buffered_signal.context.service, severity, confidence,
             )
+            # Write AI reasoning to the DB incident timeline so it appears in the UI
+            self._write_llm_timeline_event(
+                service=buffered_signal.context.service,
+                environment=buffered_signal.context.environment,
+                reasoning=llm_reasoning,
+                actions=[s.action for s in steps],
+                confidence=confidence,
+            )
         else:
             steps = self._build_steps(severity, buffered_signal)
             logger.info(
@@ -254,6 +262,52 @@ class DecisionEngine:
             signal_id=buffered_signal.signal.signal_id,
         )
         return plan
+
+    @staticmethod
+    def _write_llm_timeline_event(
+        service: str,
+        environment: str,
+        reasoning: str,
+        actions: List[str],
+        confidence: float,
+    ) -> None:
+        """Write the AI reasoning to the DB incident timeline for the active incident."""
+        try:
+            from uuid import uuid4
+            from datetime import datetime
+            from ..db.base import SessionLocal
+            from ..db.models import Incident, TimelineEvent
+            from sqlalchemy import select
+
+            with SessionLocal() as db:
+                # Find the most recent active incident for this service
+                inc = db.execute(
+                    select(Incident)
+                    .where(Incident.service == service, Incident.status == "active")
+                    .order_by(Incident.started_at.desc())
+                    .limit(1)
+                ).scalar_one_or_none()
+
+                if inc is None:
+                    return
+
+                db.add(TimelineEvent(
+                    id=str(uuid4()),
+                    incident_id=inc.id,
+                    event_type="decision.llm",
+                    description=reasoning,
+                    actor="heron-ai",
+                    severity="info",
+                    timestamp=datetime.utcnow(),
+                    metadata_={
+                        "actions": actions,
+                        "confidence": round(confidence, 3),
+                        "model": "claude-sonnet-4-6",
+                    },
+                ))
+                db.commit()
+        except Exception as exc:
+            logger.debug("LLM timeline event write failed (non-critical): %s", exc)
 
     def record_outcome(
         self,

@@ -30,36 +30,69 @@ function eventTypeColor(type: string): string {
 function TimelineItem({ entry, isLast }: { entry: DbTimelineEvent; isLast: boolean }) {
   const [expanded, setExpanded] = useState(false)
   const hasMeta = entry.metadata != null && Object.keys(entry.metadata).length > 0
+  const isLlm = entry.event_type === 'decision.llm'
+  const meta = entry.metadata as Record<string, unknown> | null
+
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
         <div className={`w-2.5 h-2.5 rounded-full mt-1 shrink-0 ${eventTypeColor(entry.event_type)}`} />
         {!isLast && <div className="w-px flex-1 bg-zinc-800 mt-1" />}
       </div>
-      <div className={`pb-4 ${isLast ? '' : ''}`}>
+      <div className="pb-4 flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-mono text-zinc-500">
             {format(parseISO(entry.timestamp), 'HH:mm:ss')}
           </span>
-          <span className="text-xs bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono">
-            {entry.event_type}
+          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${
+            isLlm
+              ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+              : 'bg-zinc-800 text-zinc-400'
+          }`}>
+            {isLlm ? '✦ AI Decision' : entry.event_type}
           </span>
-          <span className="text-[10px] text-zinc-600">{entry.actor}</span>
+          {isLlm && meta?.confidence != null && (
+            <span className="text-xs text-violet-400 font-medium">
+              {(Number(meta?.confidence ?? 0) * 100).toFixed(0)}% confidence
+            </span>
+          )}
+          {!isLlm && <span className="text-[10px] text-zinc-600">{entry.actor}</span>}
         </div>
-        <p className="mt-1 text-sm text-zinc-300">{entry.description}</p>
-        {hasMeta && (
-          <button
-            onClick={() => setExpanded((e) => !e)}
-            className="text-xs text-zinc-600 hover:text-zinc-400 mt-1 flex items-center gap-1 transition-colors"
-          >
-            {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            {expanded ? 'Hide' : 'Show'} metadata
-          </button>
-        )}
-        {expanded && hasMeta && (
-          <pre className="mt-2 text-xs bg-zinc-800/80 rounded-lg p-3 text-zinc-400 overflow-x-auto max-w-xl">
-            {JSON.stringify(entry.metadata, null, 2)}
-          </pre>
+
+        {/* LLM reasoning — always shown expanded */}
+        {isLlm ? (
+          <div className="mt-2 bg-violet-500/5 border border-violet-500/20 rounded-lg p-3">
+            <p className="text-sm text-zinc-300 leading-relaxed border-l-2 border-violet-500/40 pl-3">
+              {entry.description}
+            </p>
+            {Array.isArray(meta?.actions) && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {(meta!.actions as string[]).map((a: string) => (
+                  <span key={a} className="text-[10px] bg-violet-500/15 text-violet-300 px-2 py-0.5 rounded font-mono border border-violet-500/20">
+                    {a}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <p className="mt-1 text-sm text-zinc-300">{entry.description}</p>
+            {hasMeta && (
+              <button
+                onClick={() => setExpanded((e) => !e)}
+                className="text-xs text-zinc-600 hover:text-zinc-400 mt-1 flex items-center gap-1 transition-colors"
+              >
+                {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                {expanded ? 'Hide' : 'Show'} metadata
+              </button>
+            )}
+            {expanded && hasMeta && (
+              <pre className="mt-2 text-xs bg-zinc-800/80 rounded-lg p-3 text-zinc-400 overflow-x-auto max-w-xl">
+                {JSON.stringify(entry.metadata, null, 2)}
+              </pre>
+            )}
+          </>
         )}
       </div>
     </div>
