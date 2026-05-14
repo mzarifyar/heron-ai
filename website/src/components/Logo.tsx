@@ -94,7 +94,7 @@ export default function Logo({ size = 36, showWordmark = true, className = '' }:
       <img
         src="/logo.png"
         alt="Heron AI"
-        style={{ height: size, width: 'auto', borderRadius: 6, objectFit: 'cover' }}
+        style={{ height: size, width: size, borderRadius: 6, objectFit: 'cover' }}
       />
       {showWordmark && (
         <div className="flex flex-col leading-none">
