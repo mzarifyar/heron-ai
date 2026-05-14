@@ -180,14 +180,18 @@ function CreateSLOForm({ onCreated }: { onCreated: () => void }) {
 
 function RunbookPanel() {
   const qc = useQueryClient()
+  const [expanded, setExpanded] = useState<string | null>(null)
   const { data } = useQuery({
     queryKey: ['runbooks'],
-    queryFn: () => api.get('/api/v1/runbooks').then(r => r.data as { items: Runbook[]; count: number }),
+    queryFn: () => api.get('/api/v1/runbooks').then(r => r.data as { items: (Runbook & { content?: string })[]; count: number }),
   })
   const indexMut = useMutation({
     mutationFn: () => api.post('/api/v1/runbooks/index'),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['runbooks'] }),
   })
+
+  const isExternalUrl = (url: string | null) =>
+    url?.startsWith('http://') || url?.startsWith('https://')
 
   return (
     <Card>
@@ -208,17 +212,32 @@ function RunbookPanel() {
       ) : (
         <div className="space-y-2">
           {data.items.map(rb => (
-            <div key={rb.id} className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg">
-              <BookOpen className="w-3.5 h-3.5 text-violet-400 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-zinc-200 truncate">{rb.title}</div>
-                <div className="text-xs text-zinc-500">{rb.source}{rb.service ? ` · ${rb.service}` : ''}</div>
-              </div>
-              {rb.url && (
-                <a href={rb.url} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-violet-400 hover:text-violet-300 shrink-0">
-                  Open →
-                </a>
+            <div key={rb.id} className="bg-zinc-800/50 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setExpanded(expanded === rb.id ? null : rb.id)}
+                className="w-full flex items-center gap-3 p-3 hover:bg-zinc-800 transition-colors text-left"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-zinc-200 truncate">{rb.title}</div>
+                  <div className="text-xs text-zinc-500">{rb.source}{rb.service ? ` · ${rb.service}` : ''}</div>
+                </div>
+                {isExternalUrl(rb.url) ? (
+                  <a href={rb.url!} target="_blank" rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="text-xs text-violet-400 hover:text-violet-300 shrink-0">
+                    Open →
+                  </a>
+                ) : (
+                  <span className="text-xs text-zinc-600 shrink-0">{expanded === rb.id ? '▲' : '▼'}</span>
+                )}
+              </button>
+              {expanded === rb.id && rb.content && (
+                <div className="px-4 pb-4 pt-1 border-t border-zinc-700/50">
+                  <pre className="text-xs text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed overflow-auto max-h-80">
+                    {rb.content}
+                  </pre>
+                </div>
               )}
             </div>
           ))}

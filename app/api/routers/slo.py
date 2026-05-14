@@ -116,7 +116,8 @@ def list_runbooks(service: str | None = None, db: Session = Depends(get_db)) -> 
         q = q.where(Runbook.service == service)
     rows = db.execute(q.order_by(Runbook.title).limit(100)).scalars().all()
     items = [{"id": r.id, "title": r.title, "service": r.service,
-              "source": r.source, "url": r.source_url, "tags": r.tags or []}
+              "source": r.source, "url": r.source_url, "tags": r.tags or [],
+              "content": r.content}
              for r in rows]
     return {"items": items, "count": len(items)}
 
