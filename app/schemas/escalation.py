@@ -1,4 +1,4 @@
-"""Escalation schemas for Cortex Escalate.
+"""Escalation schemas for Heron Escalate.
 
 """
 

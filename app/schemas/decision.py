@@ -1,4 +1,4 @@
-"""Decision schemas used by Cortex Core planning.
+"""Decision schemas used by Heron Core planning.
 
 """
 

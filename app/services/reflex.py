@@ -1,4 +1,4 @@
-"""Cortex Reflex action execution service.
+"""Heron Reflex action execution service.
 
 """
 
@@ -182,7 +182,7 @@ class ApiExecutor:
                 message=str(parameters.get("message", f"Heron autonomous action for {service}")),
                 severity=str(parameters.get("severity", "sev2")),
                 service=service,
-                environment=str(parameters.get("environment", os.environ.get("CORTEX_ENV", "unknown"))),
+                environment=str(parameters.get("environment", os.environ.get("HERON_ENV", "unknown"))),
                 incident_id=str(parameters.get("incident_id", "")),
             )
             return {"success": result.get("ok", False), "details": result.get("status", "dispatched"), "executor": "api", "result": result}
@@ -343,7 +343,7 @@ class ReflexService:
         """
         if base_dry_run:
             return True
-        environment = os.environ.get("CORTEX_ENV", "unknown")
+        environment = os.environ.get("HERON_ENV", "unknown")
         return not self._policy.is_live_allowed(action_name, environment)
 
     def _take_snapshot(self, service: str, action_id: str, parameters: Dict[str, object]) -> Optional[str]:

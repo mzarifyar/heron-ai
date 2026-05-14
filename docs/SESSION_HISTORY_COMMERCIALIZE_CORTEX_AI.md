@@ -1,8 +1,8 @@
-# Session: Commercialize Cortex-AI Incident Intelligence Platform
+# Session: Commercialize Heron Incident Intelligence Platform
 
 **Session ID:** `local_14164784-8fdb-470b-b3aa-32c4656dbcb4`  
-**Session Title:** "Commercialize Cortex-AI incident intelligence platform"  
-**Worktree:** `/Users/zarifyar/code/cortex-ai-p/.claude/worktrees/hopeful-banach-5d2897`  
+**Session Title:** "Commercialize Heron incident intelligence platform"  
+**Worktree:** `/Users/zarifyar/code/heron-p/.claude/worktrees/hopeful-banach-5d2897`  
 **Branch:** `claude/hopeful-banach-5d2897`  
 **Last Activity:** 2026-05-11  
 **Status:** Archived (preserved for historical reference)
@@ -11,7 +11,7 @@
 
 ## Overview
 
-This session was the **first foundational conversation** that initiated Heron (originally Cortex-AI). It focused on commercializing the Cortex-AI incident intelligence platform built for SRE/DevOps teams.
+This session was the **first foundational conversation** that initiated Heron (originally Heron). It focused on commercializing the Heron incident intelligence platform built for SRE/DevOps teams.
 
 **Key Discovery from Session:**
 The project was named after **Heron of Alexandria** (10–70 AD), a Greek engineer who built machines that combined logical decision-making with mechanical execution — a perfect metaphor for an autonomous incident intelligence platform that observes, decides, and acts.
@@ -48,15 +48,15 @@ Every incident teaches the system. Over time, the same incident class resolves f
 
 From the vision document established in that session:
 
-1. **Cortex Sense** — Signal ingestion and normalization
-2. **Cortex Insight** — Anomaly detection (static thresholds → dynamic baselines → ML)
-3. **Cortex Core** — Decision engine with policy guardrails
-4. **Cortex Policy** — Human-authored, versioned authorization rules
-5. **Cortex Reflex** — Action executor (kubectl, ArgoCD, APIs)
-6. **Cortex Verify** — Post-action validation
-7. **Cortex Escalate** — Multi-channel notifications (Slack, PagerDuty, Jira)
-8. **Cortex Explain** — Audit trails and decision reasoning
-9. **Cortex Chronicle** — Incident timelines, postmortems, learning surfaces
+1. **Heron Sense** — Signal ingestion and normalization
+2. **Heron Insight** — Anomaly detection (static thresholds → dynamic baselines → ML)
+3. **Heron Core** — Decision engine with policy guardrails
+4. **Heron Policy** — Human-authored, versioned authorization rules
+5. **Heron Reflex** — Action executor (kubectl, ArgoCD, APIs)
+6. **Heron Verify** — Post-action validation
+7. **Heron Escalate** — Multi-channel notifications (Slack, PagerDuty, Jira)
+8. **Heron Explain** — Audit trails and decision reasoning
+9. **Heron Chronicle** — Incident timelines, postmortems, learning surfaces
 10. **Control Plane** — Multi-env / multi-region management
 
 ---

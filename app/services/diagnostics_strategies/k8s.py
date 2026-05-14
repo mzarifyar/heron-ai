@@ -28,9 +28,9 @@ def collect_safe_enrichment(
     daemonset_snapshot: Dict[str, Any] = {"success": True, "daemonsets": []}
     daemonset_pods_snapshot: Dict[str, Any] = {"success": True, "pods": [], "daemonset_evidence": []}
     if rid == "rbk-infrastructure-kubernetes-one-or-more-replica-unhealthy-in-daemonset":
-        target_ns = str(os.getenv("CORTEX_DAEMONSET_TARGET_NAMESPACE") or "").strip() or None
-        target_name = str(os.getenv("CORTEX_DAEMONSET_TARGET_NAME") or "").strip() or None
-        target_ns_csv = str(os.getenv("CORTEX_DAEMONSET_TARGET_NAMESPACES_CSV") or "").strip() or None
+        target_ns = str(os.getenv("HERON_DAEMONSET_TARGET_NAMESPACE") or "").strip() or None
+        target_name = str(os.getenv("HERON_DAEMONSET_TARGET_NAME") or "").strip() or None
+        target_ns_csv = str(os.getenv("HERON_DAEMONSET_TARGET_NAMESPACES_CSV") or "").strip() or None
         daemonset_snapshot = runner._collect_unhealthy_daemonsets(
             timeout_seconds=timeout_seconds,
             kubeconfig=kubeconfig,
@@ -48,9 +48,9 @@ def collect_safe_enrichment(
     deployment_snapshot: Dict[str, Any] = {"success": True, "deployments": []}
     deployment_pods_snapshot: Dict[str, Any] = {"success": True, "pods": [], "deployment_evidence": []}
     if rid == "rbk-infrastructure-kubernetes-one-or-more-replica-unhealthy":
-        target_ns = str(os.getenv("CORTEX_DEPLOYMENT_TARGET_NAMESPACE") or "").strip() or None
-        target_name = str(os.getenv("CORTEX_DEPLOYMENT_TARGET_NAME") or "").strip() or None
-        target_ns_csv = str(os.getenv("CORTEX_DEPLOYMENT_TARGET_NAMESPACES_CSV") or "").strip() or None
+        target_ns = str(os.getenv("HERON_DEPLOYMENT_TARGET_NAMESPACE") or "").strip() or None
+        target_name = str(os.getenv("HERON_DEPLOYMENT_TARGET_NAME") or "").strip() or None
+        target_ns_csv = str(os.getenv("HERON_DEPLOYMENT_TARGET_NAMESPACES_CSV") or "").strip() or None
         deployment_snapshot = runner._collect_unhealthy_deployments(
             timeout_seconds=timeout_seconds,
             kubeconfig=kubeconfig,
@@ -67,8 +67,8 @@ def collect_safe_enrichment(
 
     quota_snapshot: Dict[str, Any] = {"success": True, "candidates": []}
     if rid == "rbk-infrastructure-kubernetes-namesapce-quota-reached":
-        threshold_percent = int((os.getenv("CORTEX_QUOTA_THRESHOLD_PERCENT") or "95").strip() or "95")
-        target_quota_name = str(os.getenv("CORTEX_QUOTA_TARGET_NAME") or "").strip() or None
+        threshold_percent = int((os.getenv("HERON_QUOTA_THRESHOLD_PERCENT") or "95").strip() or "95")
+        target_quota_name = str(os.getenv("HERON_QUOTA_TARGET_NAME") or "").strip() or None
         quota_snapshot = runner._collect_quota_candidates(
             timeout_seconds=timeout_seconds,
             kubeconfig=kubeconfig,
@@ -80,8 +80,8 @@ def collect_safe_enrichment(
     readonly_snapshot: Dict[str, Any] = {"success": True, "nodes": []}
     readonly_evidence: List[Dict[str, Any]] = []
     if rid == "rbk-infrastructure-kubernetes-node-has-read-only-root-or-pvc-mount":
-        node_selector = str(os.getenv("CORTEX_NODE_READONLY_SELECTOR") or "").strip() or None
-        target_nodes_csv = str(os.getenv("CORTEX_NODE_READONLY_TARGET_NODES_CSV") or "").strip() or None
+        node_selector = str(os.getenv("HERON_NODE_READONLY_SELECTOR") or "").strip() or None
+        target_nodes_csv = str(os.getenv("HERON_NODE_READONLY_TARGET_NODES_CSV") or "").strip() or None
         readonly_snapshot = runner._collect_readonly_nodes(
             timeout_seconds=timeout_seconds,
             kubeconfig=kubeconfig,
@@ -98,9 +98,9 @@ def collect_safe_enrichment(
     maintenance_snapshot: Dict[str, Any] = {"success": True, "nodes": []}
     maintenance_evidence: List[Dict[str, Any]] = []
     if rid == "rbk-infrastructure-kubernetes-one-or-more-nodes-need-maintenance":
-        node_selector = str(os.getenv("CORTEX_NODE_MAINTENANCE_SELECTOR") or "").strip() or None
-        target_nodes_csv = str(os.getenv("CORTEX_NODE_MAINTENANCE_TARGET_NODES_CSV") or "").strip() or None
-        condition_regex = str(os.getenv("CORTEX_NODE_MAINTENANCE_CONDITION_REGEX") or "").strip() or None
+        node_selector = str(os.getenv("HERON_NODE_MAINTENANCE_SELECTOR") or "").strip() or None
+        target_nodes_csv = str(os.getenv("HERON_NODE_MAINTENANCE_TARGET_NODES_CSV") or "").strip() or None
+        condition_regex = str(os.getenv("HERON_NODE_MAINTENANCE_CONDITION_REGEX") or "").strip() or None
         maintenance_snapshot = runner._collect_maintenance_nodes(
             timeout_seconds=timeout_seconds,
             kubeconfig=kubeconfig,
@@ -146,7 +146,7 @@ def run_invasive_strategy(
 ) -> Dict[str, Any] | None:
     """Executes Kubernetes runbook-specific INVASIVE logic."""
     if rid == "rbk-infrastructure-kubernetes-namesapce-quota-reached":
-        quota_patch_enabled = runner._bool_env("CORTEX_QUOTA_PATCH_ENABLED", False)
+        quota_patch_enabled = runner._bool_env("HERON_QUOTA_PATCH_ENABLED", False)
         if not quota_patch_enabled:
             return {
                 "pass": "invasive",
@@ -156,8 +156,8 @@ def run_invasive_strategy(
                 "actions": [],
                 "deleted_count": 0,
             }
-        explicit_new = str(os.getenv("CORTEX_QUOTA_NEW_PODS_HARD") or "").strip()
-        increase_by = str(os.getenv("CORTEX_QUOTA_INCREASE_PODS_BY") or "").strip()
+        explicit_new = str(os.getenv("HERON_QUOTA_NEW_PODS_HARD") or "").strip()
+        increase_by = str(os.getenv("HERON_QUOTA_INCREASE_PODS_BY") or "").strip()
         if not explicit_new and not increase_by:
             return {
                 "pass": "invasive",
@@ -247,8 +247,8 @@ def run_invasive_strategy(
         }
 
     if rid == "rbk-infrastructure-kubernetes-node-has-read-only-root-or-pvc-mount":
-        do_cordon = runner._bool_env("CORTEX_NODE_READONLY_DO_CORDON", False)
-        do_drain = runner._bool_env("CORTEX_NODE_READONLY_DO_DRAIN", False)
+        do_cordon = runner._bool_env("HERON_NODE_READONLY_DO_CORDON", False)
+        do_drain = runner._bool_env("HERON_NODE_READONLY_DO_DRAIN", False)
         if not do_cordon and not do_drain:
             return {
                 "pass": "invasive",
@@ -258,10 +258,10 @@ def run_invasive_strategy(
                 "actions": [],
                 "deleted_count": 0,
             }
-        drain_timeout = str(os.getenv("CORTEX_NODE_READONLY_DRAIN_TIMEOUT") or "10m").strip() or "10m"
-        drain_ignore_ds = runner._bool_env("CORTEX_NODE_READONLY_DRAIN_IGNORE_DAEMONSETS", True)
-        drain_delete_emptydir = runner._bool_env("CORTEX_NODE_READONLY_DRAIN_DELETE_EMPTYDIR", False)
-        drain_force = runner._bool_env("CORTEX_NODE_READONLY_DRAIN_FORCE", False)
+        drain_timeout = str(os.getenv("HERON_NODE_READONLY_DRAIN_TIMEOUT") or "10m").strip() or "10m"
+        drain_ignore_ds = runner._bool_env("HERON_NODE_READONLY_DRAIN_IGNORE_DAEMONSETS", True)
+        drain_delete_emptydir = runner._bool_env("HERON_NODE_READONLY_DRAIN_DELETE_EMPTYDIR", False)
+        drain_force = runner._bool_env("HERON_NODE_READONLY_DRAIN_FORCE", False)
         targets = readonly_nodes if isinstance(readonly_nodes, list) else []
         actions: List[Dict[str, Any]] = []
         action_count = 0
@@ -311,7 +311,7 @@ def run_invasive_strategy(
         }
 
     if rid == "rbk-infrastructure-kubernetes-one-or-more-pod-is-down":
-        do_restart = runner._bool_env("CORTEX_POD_DOWN_DO_RESTART_PODS", True)
+        do_restart = runner._bool_env("HERON_POD_DOWN_DO_RESTART_PODS", True)
         if not do_restart:
             return {
                 "pass": "invasive",
@@ -323,7 +323,7 @@ def run_invasive_strategy(
             }
         actions: List[Dict[str, Any]] = []
         deleted = 0
-        max_pods = int((os.getenv("CORTEX_DIAGNOSTICS_MAX_INVASIVE_PODS") or "50").strip() or "50")
+        max_pods = int((os.getenv("HERON_DIAGNOSTICS_MAX_INVASIVE_PODS") or "50").strip() or "50")
         for pod in unhealthy_pods[: max(1, min(200, max_pods))]:
             ns = str(pod.get("namespace") or "").strip()
             name = str(pod.get("name") or "").strip()
@@ -348,8 +348,8 @@ def run_invasive_strategy(
         }
 
     if rid == "rbk-infrastructure-kubernetes-one-or-more-replica-unhealthy-in-daemonset":
-        do_restart_pods = runner._bool_env("CORTEX_DAEMONSET_DO_RESTART_UNHEALTHY_PODS", True)
-        do_rollout_restart = runner._bool_env("CORTEX_DAEMONSET_DO_ROLLOUT_RESTART", False)
+        do_restart_pods = runner._bool_env("HERON_DAEMONSET_DO_RESTART_UNHEALTHY_PODS", True)
+        do_rollout_restart = runner._bool_env("HERON_DAEMONSET_DO_ROLLOUT_RESTART", False)
         if not do_restart_pods and not do_rollout_restart:
             return {
                 "pass": "invasive",
@@ -362,7 +362,7 @@ def run_invasive_strategy(
         actions: List[Dict[str, Any]] = []
         deleted = 0
         rollout_count = 0
-        max_pods = int((os.getenv("CORTEX_DIAGNOSTICS_MAX_INVASIVE_PODS") or "50").strip() or "50")
+        max_pods = int((os.getenv("HERON_DIAGNOSTICS_MAX_INVASIVE_PODS") or "50").strip() or "50")
         if do_restart_pods:
             for pod in unhealthy_pods[: max(1, min(200, max_pods))]:
                 ns = str(pod.get("namespace") or "").strip()
@@ -416,8 +416,8 @@ def run_invasive_strategy(
         }
 
     if rid == "rbk-infrastructure-kubernetes-one-or-more-replica-unhealthy":
-        do_restart_pods = runner._bool_env("CORTEX_DEPLOYMENT_DO_RESTART_UNHEALTHY_PODS", True)
-        do_rollout_restart = runner._bool_env("CORTEX_DEPLOYMENT_DO_ROLLOUT_RESTART", False)
+        do_restart_pods = runner._bool_env("HERON_DEPLOYMENT_DO_RESTART_UNHEALTHY_PODS", True)
+        do_rollout_restart = runner._bool_env("HERON_DEPLOYMENT_DO_ROLLOUT_RESTART", False)
         if not do_restart_pods and not do_rollout_restart:
             return {
                 "pass": "invasive",
@@ -430,7 +430,7 @@ def run_invasive_strategy(
         actions: List[Dict[str, Any]] = []
         deleted = 0
         rollout_count = 0
-        max_pods = int((os.getenv("CORTEX_DIAGNOSTICS_MAX_INVASIVE_PODS") or "50").strip() or "50")
+        max_pods = int((os.getenv("HERON_DIAGNOSTICS_MAX_INVASIVE_PODS") or "50").strip() or "50")
         if do_restart_pods:
             for pod in unhealthy_pods[: max(1, min(200, max_pods))]:
                 ns = str(pod.get("namespace") or "").strip()
@@ -484,8 +484,8 @@ def run_invasive_strategy(
         }
 
     if rid == "rbk-infrastructure-kubernetes-one-or-more-nodes-need-maintenance":
-        do_cordon = runner._bool_env("CORTEX_NODE_MAINTENANCE_DO_CORDON", False)
-        do_drain = runner._bool_env("CORTEX_NODE_MAINTENANCE_DO_DRAIN", False)
+        do_cordon = runner._bool_env("HERON_NODE_MAINTENANCE_DO_CORDON", False)
+        do_drain = runner._bool_env("HERON_NODE_MAINTENANCE_DO_DRAIN", False)
         if not do_cordon and not do_drain:
             return {
                 "pass": "invasive",
@@ -495,10 +495,10 @@ def run_invasive_strategy(
                 "actions": [],
                 "deleted_count": 0,
             }
-        drain_timeout = str(os.getenv("CORTEX_NODE_MAINTENANCE_DRAIN_TIMEOUT") or "10m").strip() or "10m"
-        drain_ignore_ds = runner._bool_env("CORTEX_NODE_MAINTENANCE_DRAIN_IGNORE_DAEMONSETS", True)
-        drain_delete_emptydir = runner._bool_env("CORTEX_NODE_MAINTENANCE_DRAIN_DELETE_EMPTYDIR", False)
-        drain_force = runner._bool_env("CORTEX_NODE_MAINTENANCE_DRAIN_FORCE", False)
+        drain_timeout = str(os.getenv("HERON_NODE_MAINTENANCE_DRAIN_TIMEOUT") or "10m").strip() or "10m"
+        drain_ignore_ds = runner._bool_env("HERON_NODE_MAINTENANCE_DRAIN_IGNORE_DAEMONSETS", True)
+        drain_delete_emptydir = runner._bool_env("HERON_NODE_MAINTENANCE_DRAIN_DELETE_EMPTYDIR", False)
+        drain_force = runner._bool_env("HERON_NODE_MAINTENANCE_DRAIN_FORCE", False)
         targets = maintenance_nodes if isinstance(maintenance_nodes, list) else []
         actions: List[Dict[str, Any]] = []
         action_count = 0
@@ -564,7 +564,7 @@ def run_overwatch_strategy(
 ) -> Dict[str, Any] | None:
     """Executes Kubernetes runbook-specific OVERWATCH logic."""
     if runbook_id == "rbk-infrastructure-kubernetes-namesapce-quota-reached":
-        threshold_percent = int((os.getenv("CORTEX_QUOTA_THRESHOLD_PERCENT") or "95").strip() or "95")
+        threshold_percent = int((os.getenv("HERON_QUOTA_THRESHOLD_PERCENT") or "95").strip() or "95")
         quota_candidates = safe_pass.get("quota_candidates", []) if isinstance(safe_pass.get("quota_candidates"), list) else []
         watch_namespaces = sorted(
             {
@@ -595,7 +595,7 @@ def run_overwatch_strategy(
         )
 
     if runbook_id == "rbk-infrastructure-kubernetes-one-or-more-nodes-need-maintenance":
-        condition_regex = str(os.getenv("CORTEX_NODE_MAINTENANCE_CONDITION_REGEX") or "").strip() or None
+        condition_regex = str(os.getenv("HERON_NODE_MAINTENANCE_CONDITION_REGEX") or "").strip() or None
         return runner._run_node_maintenance_overwatch_pass(
             dry_run=dry_run,
             timeout_seconds=timeout_seconds,

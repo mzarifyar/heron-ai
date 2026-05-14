@@ -1,6 +1,6 @@
 """Parsing helpers for Jira ticket summaries and alarm messages.
 
-Ported from the legacy Cortex processor so associations work identically.
+Ported from the legacy Heron processor so associations work identically.
 
 """
 from __future__ import annotations

@@ -1,4 +1,4 @@
-"""Domain helpers for Cortex incidents and timelines.
+"""Domain helpers for Heron incidents and timelines.
 
 """
 

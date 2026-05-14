@@ -1,4 +1,4 @@
-"""Schemas for Cortex-AI components.
+"""Schemas for Heron components.
 
 """
 

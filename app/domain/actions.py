@@ -1,4 +1,4 @@
-"""Common mitigation and action models used throughout Cortex.
+"""Common mitigation and action models used throughout Heron.
 
 """
 

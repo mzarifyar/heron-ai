@@ -1,4 +1,4 @@
-"""Centralized logging configuration for Cortex-AI.
+"""Centralized logging configuration for Heron.
 
 """
 

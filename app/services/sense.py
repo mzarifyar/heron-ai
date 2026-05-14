@@ -1,4 +1,4 @@
-"""Service logic for Cortex Sense (signal ingestion).
+"""Service logic for Heron Sense (signal ingestion).
 
 """
 

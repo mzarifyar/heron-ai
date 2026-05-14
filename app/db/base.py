@@ -9,10 +9,10 @@ from typing import Generator
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-# Resolve absolute path to <project_root>/data/cortex.db so the DB is found
+# Resolve absolute path to <project_root>/data/heron.db so the DB is found
 # regardless of which directory uvicorn is started from.
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
-_DEFAULT_DB = str(_PROJECT_ROOT / "data" / "cortex.db")
+_DEFAULT_DB = str(_PROJECT_ROOT / "data" / "heron.db")
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{_DEFAULT_DB}")
 
 _is_sqlite = DATABASE_URL.startswith("sqlite")

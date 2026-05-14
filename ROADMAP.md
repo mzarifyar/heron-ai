@@ -199,7 +199,7 @@ The website implies intelligent anomaly detection. What exists is an if/else che
 **Verdict:** 🔴 Inaccurate — this is the most important gap in the product
 
 **What's built:**
-`DecisionEngine` is a rule-based system. The docstring reads *"Rule-based Cortex Core decision engine."* The logic is:
+`DecisionEngine` is a rule-based system. The docstring reads *"Rule-based Heron Core decision engine."* The logic is:
 - sev1 → page on-call
 - sev2 → rollback latest deployment, then escalate if blocked
 - sev3 → restart component

@@ -1,4 +1,4 @@
-# Cortex Mitigations Catalog
+# Heron Mitigations Catalog
 
 This directory houses the runbook-as-code library that maps alarms -> mitigations.
 The layout intentionally separates authored content (`runbooks/`) from structured

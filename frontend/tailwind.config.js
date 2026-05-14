@@ -9,7 +9,7 @@ export default {
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
-        // Cortex accent system
+        // Heron accent system
         brand: {
           50:  '#f5f3ff',
           100: '#ede9fe',

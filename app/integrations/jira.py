@@ -130,7 +130,7 @@ def get_jira_bearer_token() -> str:
 
     try:
         client = secret_service.get_secret_client()
-        token = _normalize_token(client.get_plain_secret("cortex-jira-sd-token"))
+        token = _normalize_token(client.get_plain_secret("heron-jira-sd-token"))
         if token:
             return token
     except Exception as e:
@@ -262,7 +262,7 @@ def _log_passive_action(action: str, payload: Dict[str, Any]) -> None:
     if logger:
         record = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "service": "cortex",
+            "service": "heron",
             "mode": "passive",
             "action": action,
             "payload": redact_payload(_sanitize_passive_payload(payload)),

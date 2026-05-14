@@ -1,7 +1,7 @@
 """AlertSourceAdapter — abstract interface for pluggable alert source pullers.
 
 Any alert source (CloudWatch, Datadog, PagerDuty, Prometheus Alertmanager,
-a custom HTTP API) can be integrated with Cortex by implementing this interface.
+a custom HTTP API) can be integrated with Heron by implementing this interface.
 
 How to add a new alert source adapter
 --------------------------------------
@@ -49,7 +49,7 @@ class AlertSourceResult:
 
 
 class AlertSourceAdapter(ABC):
-    """Base class for all Cortex alert source adapters.
+    """Base class for all Heron alert source adapters.
 
     Subclasses must implement ``source_name``, ``is_configured``, and ``pull``.
     The scheduler calls ``pull`` on the configured interval and hands signals

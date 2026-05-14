@@ -1,4 +1,4 @@
-"""Policy loading and evaluation service for Cortex guardrails.
+"""Policy loading and evaluation service for Heron guardrails.
 
 """
 

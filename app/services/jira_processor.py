@@ -1,4 +1,4 @@
-"""Jira ingestion pipeline adopted from the legacy Cortex processor.
+"""Jira ingestion pipeline adopted from the legacy Heron processor.
 
 This service runs the classic polling loop:
   - determine the Jira query window using the checkpoint (fallback to range_hours)
@@ -7,7 +7,7 @@ This service runs the classic polling loop:
   - record association metadata for downstream mitigations
 
 It intentionally stops short of triggering mitigations/AI so that the port can
-grow incrementally while Cortex-AI keeps its modular service boundaries.
+grow incrementally while Heron keeps its modular service boundaries.
 
 """
 from __future__ import annotations
@@ -72,13 +72,13 @@ class JiraProcessor:
         """Determines update labels using local writes or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
         if not JiraProcessor._jira_mutations_enabled():
             return False
-        raw = os.getenv("CORTEX_JIRA_INGEST_UPDATE_LABELS", "false").strip().lower()
+        raw = os.getenv("HERON_JIRA_INGEST_UPDATE_LABELS", "false").strip().lower()
         return raw in {"1", "true", "yes", "on"}
 
     @staticmethod
     def _jira_mutations_enabled() -> bool:
         """Builds jira mutations enabled using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = os.getenv("CORTEX_JIRA_MUTATIONS_ENABLED", "false").strip().lower()
+        raw = os.getenv("HERON_JIRA_MUTATIONS_ENABLED", "false").strip().lower()
         if raw not in {"1", "true", "yes", "on"}:
             return False
         return JiraProcessor._role_allowed("jira_mutations", ["admin", "sre"])
@@ -86,7 +86,7 @@ class JiraProcessor:
     @staticmethod
     def _should_execute_diagnostics() -> bool:
         """Determines execute diagnostics using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = os.getenv("CORTEX_DIAGNOSTICS_EXECUTE", "false").strip().lower()
+        raw = os.getenv("HERON_DIAGNOSTICS_EXECUTE", "false").strip().lower()
         if raw not in {"1", "true", "yes", "on"}:
             return False
         return JiraProcessor._role_allowed("diagnostics_execute", ["admin", "sre", "operator"])
@@ -94,14 +94,14 @@ class JiraProcessor:
     @staticmethod
     def _diagnostics_dry_run() -> bool:
         """Builds diagnostics dry run using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = os.getenv("CORTEX_DIAGNOSTICS_DRY_RUN", "true").strip().lower()
+        raw = os.getenv("HERON_DIAGNOSTICS_DRY_RUN", "true").strip().lower()
         return raw in {"1", "true", "yes", "on"}
 
     @staticmethod
     def _diagnostics_timeout_seconds() -> int:
         """Builds diagnostics timeout seconds using local state or integration calls and returns an integer value (e.g., 1), may raise ValueError for bad input while dependency errors may bubble."""
         try:
-            value = int((os.getenv("CORTEX_DIAGNOSTICS_TIMEOUT_SECONDS") or "45").strip())
+            value = int((os.getenv("HERON_DIAGNOSTICS_TIMEOUT_SECONDS") or "45").strip())
             return max(5, min(300, value))
         except (TypeError, ValueError):
             return 45
@@ -110,7 +110,7 @@ class JiraProcessor:
     def _diagnostics_retries() -> int:
         """Builds diagnostics retries using local state or integration calls and returns an integer value (e.g., 1), may raise ValueError for bad input while dependency errors may bubble."""
         try:
-            value = int((os.getenv("CORTEX_DIAGNOSTICS_RETRIES") or "0").strip())
+            value = int((os.getenv("HERON_DIAGNOSTICS_RETRIES") or "0").strip())
             return max(0, min(3, value))
         except (TypeError, ValueError):
             return 0
@@ -120,7 +120,7 @@ class JiraProcessor:
         """Builds ticket lifecycle enabled using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
         if not JiraProcessor._jira_mutations_enabled():
             return False
-        raw = os.getenv("CORTEX_JIRA_LIFECYCLE_ENABLED", "false").strip().lower()
+        raw = os.getenv("HERON_JIRA_LIFECYCLE_ENABLED", "false").strip().lower()
         if raw not in {"1", "true", "yes", "on"}:
             return False
         return JiraProcessor._role_allowed("ticket_lifecycle", ["admin", "sre"])
@@ -128,7 +128,7 @@ class JiraProcessor:
     @staticmethod
     def _verification_enabled() -> bool:
         """Builds verification enabled using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = os.getenv("CORTEX_VERIFICATION_ENABLED", "true").strip().lower()
+        raw = os.getenv("HERON_VERIFICATION_ENABLED", "true").strip().lower()
         return raw in {"1", "true", "yes", "on"}
 
     @staticmethod
@@ -136,7 +136,7 @@ class JiraProcessor:
         """Builds sev4 escalation enabled using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
         if not JiraProcessor._jira_mutations_enabled():
             return False
-        raw = os.getenv("CORTEX_SEV4_ESCALATION_ENABLED", "false").strip().lower()
+        raw = os.getenv("HERON_SEV4_ESCALATION_ENABLED", "false").strip().lower()
         if raw not in {"1", "true", "yes", "on"}:
             return False
         return JiraProcessor._role_allowed("sev4_escalation", ["admin", "sre"])
@@ -149,7 +149,7 @@ class JiraProcessor:
     @staticmethod
     def _operator_role() -> str:
         """Builds operator role using local state or integration calls and returns a string value (e.g., "ok"), may raise ValueError for bad input while dependency errors may bubble."""
-        return str(os.getenv("CORTEX_OPERATOR_ROLE") or "viewer").strip().lower() or "viewer"
+        return str(os.getenv("HERON_OPERATOR_ROLE") or "viewer").strip().lower() or "viewer"
 
     @staticmethod
     def _role_allowed(capability: str, default_roles: list[str]) -> bool:
@@ -161,7 +161,7 @@ class JiraProcessor:
     def _jira_worker_count() -> int:
         """Builds jira worker count using local state or integration calls and returns an integer value (e.g., 1), may raise ValueError for bad input while dependency errors may bubble."""
         try:
-            value = int((os.getenv("CORTEX_JIRA_WORKERS") or "1").strip())
+            value = int((os.getenv("HERON_JIRA_WORKERS") or "1").strip())
             return max(1, min(8, value))
         except (TypeError, ValueError):
             return 1
@@ -170,7 +170,7 @@ class JiraProcessor:
     def _ticket_time_budget_seconds() -> int:
         """Builds ticket time budget seconds using local state or integration calls and returns an integer value (e.g., 1), may raise ValueError for bad input while dependency errors may bubble."""
         try:
-            value = int((os.getenv("CORTEX_JIRA_TICKET_MAX_SECONDS") or "900").strip())
+            value = int((os.getenv("HERON_JIRA_TICKET_MAX_SECONDS") or "900").strip())
             return max(30, min(7200, value))
         except (TypeError, ValueError):
             return 900
@@ -179,7 +179,7 @@ class JiraProcessor:
     def _sev4_min_monitor_seconds() -> int:
         """Builds sev4 min monitor seconds using local state or integration calls and returns an integer value (e.g., 1), may raise ValueError for bad input while dependency errors may bubble."""
         try:
-            value = int((os.getenv("CORTEX_SEV4_MIN_MONITOR_SECONDS") or "900").strip())
+            value = int((os.getenv("HERON_SEV4_MIN_MONITOR_SECONDS") or "900").strip())
             return max(60, min(86400, value))
         except (TypeError, ValueError):
             return 900
@@ -201,7 +201,7 @@ class JiraProcessor:
     @staticmethod
     def _display_timezone() -> ZoneInfo:
         """Builds display timezone using local state or integration calls and returns a result value, may raise ValueError for bad input while dependency errors may bubble."""
-        tz_name = (os.getenv("CORTEX_DISPLAY_TZ") or "America/Los_Angeles").strip()
+        tz_name = (os.getenv("HERON_DISPLAY_TZ") or "America/Los_Angeles").strip()
         try:
             return ZoneInfo(tz_name)
         except Exception:
@@ -379,7 +379,7 @@ class JiraProcessor:
     @staticmethod
     def _should_enrich_alarm_status() -> bool:
         """Determines enrich alarm status using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = os.getenv("CORTEX_JIRA_ENRICH_ALARM_STATUS", "true").strip().lower()
+        raw = os.getenv("HERON_JIRA_ENRICH_ALARM_STATUS", "true").strip().lower()
         return raw in {"1", "true", "yes", "on"}
 
     @staticmethod
@@ -387,7 +387,7 @@ class JiraProcessor:
         """Checks operator token using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
         return bool(
             (os.getenv("OPERATOR_ACCESS_TOKEN") or "").strip()
-            or (os.getenv("CORTEX_OPERATOR_ACCESS_TOKEN") or "").strip()
+            or (os.getenv("HERON_OPERATOR_ACCESS_TOKEN") or "").strip()
         )
 
     def _build_enrichment(
@@ -440,7 +440,7 @@ class JiraProcessor:
                     alarm_info = {
                         "alarm_region": inferred_region,
                         "alarm_id": alarm_id,
-                        "alarm_url": f"{os.getenv('CORTEX_ALERT_SOURCE_HOST', '')}/monitoring/alarms/{inferred_region}/{alarm_id}",
+                        "alarm_url": f"{os.getenv('HERON_ALERT_SOURCE_HOST', '')}/monitoring/alarms/{inferred_region}/{alarm_id}",
                     }
         if alarm_info:
             enrichment.update(alarm_info)
@@ -595,10 +595,10 @@ class JiraProcessor:
         alarm_url = str(enrichment.get("alarm_url") or "")
         alarm_id = str(enrichment.get("alarm_id") or "")
         ops_central_url = str(((enrichment.get("ticket_description") or {}).get("ops_central_url")) or "")
-        escalation_summary = f"[SEV4][CORTEX] Unresolved auto-mitigation for {ticket_key}"
+        escalation_summary = f"[SEV4][HERON] Unresolved auto-mitigation for {ticket_key}"
         escalation_body = "\n".join(
             [
-                "Cortex-AI automated escalation (SEV-4).",
+                "Heron automated escalation (SEV-4).",
                 "",
                 f"Original Ticket: {ticket_key}",
                 f"Original Summary: {summary_text}",
@@ -621,7 +621,7 @@ class JiraProcessor:
             summary=escalation_summary,
             description=escalation_body,
             issue_type_name="Incident",
-            labels=["cortex-ai-escalation", "sev4"],
+            labels=["heron-escalation", "sev4"],
         )
         if created.get("error"):
             return {"status": "failed", "error": created.get("error")}
@@ -631,7 +631,7 @@ class JiraProcessor:
             jira_api.add_comment(
                 ticket_key,
                 (
-                    "[cortex-ai] Escalated unresolved incident to SEV-4.\n"
+                    "[heron] Escalated unresolved incident to SEV-4.\n"
                     f"Escalation Ticket: {escalated_key}\n"
                     f"Runbook: {runbook_id}"
                 ),
@@ -641,7 +641,7 @@ class JiraProcessor:
             jira_api.add_comment(
                 escalated_key,
                 (
-                    "[cortex-ai] Linked source incident.\n"
+                    "[heron] Linked source incident.\n"
                     f"Source Ticket: {ticket_key}\n"
                     f"Source Summary: {summary_text}"
                 ),
@@ -778,7 +778,7 @@ class JiraProcessor:
 
             if ingest_status != "already_processed" and self._ticket_lifecycle_enabled() and key:
                 start_comment = (
-                    "[cortex-ai] Ticket claimed for automated diagnostics.\n"
+                    "[heron] Ticket claimed for automated diagnostics.\n"
                     f"Ticket: {key}\n"
                     "Lifecycle: processing_started\n"
                     f"Diagnostics execute enabled: {self._should_execute_diagnostics()}\n"
@@ -930,7 +930,7 @@ class JiraProcessor:
             if ingest_status != "already_processed" and self._ticket_lifecycle_enabled() and key:
                 execution_state = (enrichment.get("diagnostics_execution") or {}).get("status", "not_executed")
                 completion_comment = (
-                    "[cortex-ai] Diagnostics stage complete.\n"
+                    "[heron] Diagnostics stage complete.\n"
                     f"Ticket: {key}\n"
                     f"Runbook: {enrichment.get('runbook_id') or 'unresolved'}\n"
                     f"Execution: {execution_state}\n"

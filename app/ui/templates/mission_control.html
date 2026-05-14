@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Cortex Mission Control{% endblock %}
-{% block header_title %}Cortex Mission Control{% endblock %}
+{% block title %}Heron Mission Control{% endblock %}
+{% block header_title %}Heron Mission Control{% endblock %}
 {% block content %}
   <div class="panel stack page-shell hero-shell">
     <div class="row">
       <div class="grow">
-        <h3 class="section-title">Cortex Mission Control</h3>
+        <h3 class="section-title">Heron Mission Control</h3>
         <div class="muted small">Unified command center for Chronicle, pullers, ingest, explainability, and alarm operations.</div>
       </div>
       <span id="clock" class="code"></span>
@@ -88,7 +88,7 @@
     const reportSummaryUrl = "{{ report_summary_url }}";
     const nearMissUrl = "{{ near_miss_url }}";
     const runJiraUrl = "{{ run_jira_url }}";
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
 
     function setClock() {
       const now = new Date();

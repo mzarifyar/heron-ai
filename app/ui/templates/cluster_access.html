@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Cluster Access{% endblock %}
-{% block header_title %}Cortex Cluster Access{% endblock %}
+{% block title %}Heron Cluster Access{% endblock %}
+{% block header_title %}Heron Cluster Access{% endblock %}
 {% block content %}
   <style>
     .cluster-actions {
@@ -270,7 +270,7 @@
   </div>
 
   <script>
-    const { escapeHtml, getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { escapeHtml, getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
     const hierarchyRoot = document.getElementById("hierarchy-root");
     const validationBody = document.getElementById("validation-body");
     const validationFilter = document.getElementById("validation-filter");

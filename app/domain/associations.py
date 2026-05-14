@@ -1,4 +1,4 @@
-"""Association helpers imported from the legacy Cortex processor.
+"""Association helpers imported from the legacy Heron processor.
 
 Maps normalized alarm messages to configured groups/actions/components based on
 ``config/dvm.json`` (or the legacy ``config/associations.json`` fallback).

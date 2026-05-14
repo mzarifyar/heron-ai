@@ -1,4 +1,4 @@
-"""Anomaly schemas for Cortex Insight.
+"""Anomaly schemas for Heron Insight.
 
 """
 

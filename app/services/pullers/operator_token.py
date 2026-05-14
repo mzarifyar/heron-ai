@@ -45,17 +45,17 @@ class OperatorTokenManager:
 
     def _store_path(self) -> Path:
         """Builds store path using local state or integration calls and returns a result value, may raise ValueError for bad input while dependency errors may bubble."""
-        configured = (os.getenv("CORTEX_OPERATOR_TOKEN_STORE_PATH") or DEFAULT_TOKEN_STORE_PATH).strip()
+        configured = (os.getenv("HERON_OPERATOR_TOKEN_STORE_PATH") or DEFAULT_TOKEN_STORE_PATH).strip()
         return Path(configured)
 
     def _allow_ssh_refresh(self) -> bool:
         """Builds allow ssh refresh using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = (os.getenv("CORTEX_OPERATOR_TOKEN_ALLOW_SSH_REFRESH") or "true").strip().lower()
+        raw = (os.getenv("HERON_OPERATOR_TOKEN_ALLOW_SSH_REFRESH") or "true").strip().lower()
         return raw in {"1", "true", "yes", "on"}
 
     def _refresh_timeout(self) -> int:
         """Builds refresh timeout using local state or integration calls and returns an integer value (e.g., 1), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = (os.getenv("CORTEX_OPERATOR_TOKEN_REFRESH_TIMEOUT_SECONDS") or "30").strip()
+        raw = (os.getenv("HERON_OPERATOR_TOKEN_REFRESH_TIMEOUT_SECONDS") or "30").strip()
         try:
             return max(5, int(raw))
         except ValueError:
@@ -63,11 +63,11 @@ class OperatorTokenManager:
 
     def _ssh_host(self) -> str:
         """Builds ssh host using local state or integration calls and returns a string value (e.g., "ok"), may raise ValueError for bad input while dependency errors may bubble."""
-        return (os.getenv("CORTEX_OPERATOR_TOKEN_SSH_HOST") or DEFAULT_SSH_HOST).strip()
+        return (os.getenv("HERON_OPERATOR_TOKEN_SSH_HOST") or DEFAULT_SSH_HOST).strip()
 
     def _ssh_command(self) -> str:
         """Builds ssh command using local state or integration calls and returns a string value (e.g., "ok"), may raise ValueError for bad input while dependency errors may bubble."""
-        return (os.getenv("CORTEX_OPERATOR_TOKEN_SSH_COMMAND") or DEFAULT_SSH_COMMAND).strip()
+        return (os.getenv("HERON_OPERATOR_TOKEN_SSH_COMMAND") or DEFAULT_SSH_COMMAND).strip()
 
     @staticmethod
     def _decode_exp(token: str) -> Optional[str]:
@@ -175,7 +175,7 @@ class OperatorTokenManager:
     def get_token(self, *, auto_refresh: bool = True) -> OperatorToken:
         # 1) explicit env first (keeps expected behavior in CI/container)
         """Gets token using local state or integration calls and returns a result value, may raise ValueError for bad input while dependency errors may bubble."""
-        for name in ("OPERATOR_ACCESS_TOKEN", "CORTEX_OPERATOR_ACCESS_TOKEN"):
+        for name in ("OPERATOR_ACCESS_TOKEN", "HERON_OPERATOR_ACCESS_TOKEN"):
             value = self._normalize(os.getenv(name))
             if value:
                 token = OperatorToken(token=value, source=f"env:{name}", expires_at_utc=self._decode_exp(value))

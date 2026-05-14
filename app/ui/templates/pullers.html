@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Pullers Dashboard{% endblock %}
-{% block header_title %}Cortex Pullers{% endblock %}
+{% block title %}Heron Pullers Dashboard{% endblock %}
+{% block header_title %}Heron Pullers{% endblock %}
 {% block content %}
   <style>
     .ticket-project-tab {
@@ -23,7 +23,7 @@
       background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
     }
 
-    .ticket-project-tab.project-cortex.is-active {
+    .ticket-project-tab.project-heron.is-active {
       background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);
     }
   </style>
@@ -113,7 +113,7 @@
       <div class="row top-gap-8">
         <button id="tickets-tab-oda" class="ticket-project-tab project-oda" type="button">ODA</button>
         <button id="tickets-tab-cda" class="ticket-project-tab project-cda" type="button">CDA</button>
-        <button id="tickets-tab-cortex" class="ticket-project-tab project-cortex" type="button">Cortex</button>
+        <button id="tickets-tab-heron" class="ticket-project-tab project-heron" type="button">Heron</button>
       </div>
       <table class="grid">
         <thead>
@@ -144,7 +144,7 @@
     const clusterHygieneLatestUrl = "{{ cluster_hygiene_latest_url }}";
     const jiraBrowseBaseUrl = "{{ jira_browse_base_url }}";
     const ticketsPageSize = 100;
-    const { getJson, escapeHtml, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, escapeHtml, renderKeyValueRows, runButtonAction } = window.HeronUI;
 
     let ticketsPage = 1;
     let ticketsTotalPages = 1;
@@ -155,7 +155,7 @@
     function updateProjectTabState() {
       const odaBtn = document.getElementById("tickets-tab-oda");
       const cdaBtn = document.getElementById("tickets-tab-cda");
-      const cortexBtn = document.getElementById("tickets-tab-cortex");
+      const heronBtn = document.getElementById("tickets-tab-heron");
       if (odaBtn) {
         const isActive = ticketsProject === "ODA";
         odaBtn.classList.toggle("is-active", isActive);
@@ -166,10 +166,10 @@
         cdaBtn.classList.toggle("is-active", isActive);
         cdaBtn.setAttribute("aria-pressed", isActive ? "true" : "false");
       }
-      if (cortexBtn) {
-        const isActive = ticketsProject === "CORTEX";
-        cortexBtn.classList.toggle("is-active", isActive);
-        cortexBtn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      if (heronBtn) {
+        const isActive = ticketsProject === "HERON";
+        heronBtn.classList.toggle("is-active", isActive);
+        heronBtn.setAttribute("aria-pressed", isActive ? "true" : "false");
       }
     }
 
@@ -499,8 +499,8 @@
       ticketsPage = 1;
       await loadTickets(1);
     });
-    document.getElementById("tickets-tab-cortex").addEventListener("click", async () => {
-      ticketsProject = "CORTEX";
+    document.getElementById("tickets-tab-heron").addEventListener("click", async () => {
+      ticketsProject = "HERON";
       ticketsPage = 1;
       await loadTickets(1);
     });

@@ -1,4 +1,4 @@
-"""Checkpoint utilities mirrored from the legacy Cortex processor.
+"""Checkpoint utilities mirrored from the legacy Heron processor.
 
 These helpers persist the last successful Jira poll timestamp under
 ``<SYS_PATH>/data/checkpoint.json`` so repeated ingestion runs only fetch

@@ -26,8 +26,8 @@ Status: Proposed
   - Prevent auto-escalation when verification is disabled/unavailable.
   - Require explicit verification signal before SEV4 creation.
 - [IN PROGRESS] Throughput and resilience:
-  - [DONE] Add optional Jira worker pool (`CORTEX_JIRA_WORKERS`) for multi-ticket processing.
-  - [DONE] Add per-ticket time budget guard (`CORTEX_JIRA_TICKET_MAX_SECONDS`) and explicit timeout evidence.
+  - [DONE] Add optional Jira worker pool (`HERON_JIRA_WORKERS`) for multi-ticket processing.
+  - [DONE] Add per-ticket time budget guard (`HERON_JIRA_TICKET_MAX_SECONDS`) and explicit timeout evidence.
   - [IN PROGRESS] Improve retries with bounded backoff/jitter and partial-run durability checkpoints.
 - [DONE] Formal Jira linking:
   - Add true issue-link relation (not only comments) between source ticket and SEV4 ticket.
@@ -46,13 +46,13 @@ Status: Proposed
   - Structured Jira issue linking added in addition to comments.
 - [DONE] RBAC/control-plane authority boundaries:
   - Mitigation toggles role-gated by control-plane capabilities.
-  - DevOps admin write endpoints enforce role authorization (`x-cortex-role` header or `CORTEX_OPERATOR_ROLE`).
+  - DevOps admin write endpoints enforce role authorization (`x-heron-role` header or `HERON_OPERATOR_ROLE`).
 
 ## 1) Controlled Rollout (Diagnostics Execute, Dry-Run)
 
 - Enable diagnostics execution with dry-run only:
-  - `CORTEX_DIAGNOSTICS_EXECUTE=true`
-  - `CORTEX_DIAGNOSTICS_DRY_RUN=true`
+  - `HERON_DIAGNOSTICS_EXECUTE=true`
+  - `HERON_DIAGNOSTICS_DRY_RUN=true`
 - Observe puller/ingestion behavior for 1-2 hours before moving further.
 - Validate stability, noise level, and expected verification outputs.
 

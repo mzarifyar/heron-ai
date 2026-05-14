@@ -28,9 +28,9 @@ def _usage() -> None:
 
 def _get_token() -> str:
     """Gets token using local state or integration calls and returns a string value (e.g., "ok"), may raise ValueError for bad input while dependency errors may bubble."""
-    token = os.getenv("OPERATOR_ACCESS_TOKEN") or os.getenv("CORTEX_OPERATOR_ACCESS_TOKEN")
+    token = os.getenv("OPERATOR_ACCESS_TOKEN") or os.getenv("HERON_OPERATOR_ACCESS_TOKEN")
     if not token:
-        raise RuntimeError("OPERATOR_ACCESS_TOKEN or CORTEX_OPERATOR_ACCESS_TOKEN must be set")
+        raise RuntimeError("OPERATOR_ACCESS_TOKEN or HERON_OPERATOR_ACCESS_TOKEN must be set")
     return token
 
 

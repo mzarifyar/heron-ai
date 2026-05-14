@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Escalation Console{% endblock %}
-{% block header_title %}Cortex Escalation Console{% endblock %}
+{% block title %}Heron Escalation Console{% endblock %}
+{% block header_title %}Heron Escalation Console{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -16,8 +16,8 @@
       <label><span class="field-label">Severity</span><input id="esc-severity" type="text" value="sev2"></label>
     </div>
     <label><span class="field-label">Summary</span><input id="esc-summary" type="text" value="Synthetic escalation from console"></label>
-    <label><span class="field-label">Channels (one `name:target` per line) <span class="info-dot" title="Examples: slack:#cortex-ops, pagerduty:core-oncall, jira:ODA">i</span></span>
-      <textarea id="esc-channels" rows="4">slack:#cortex-ops
+    <label><span class="field-label">Channels (one `name:target` per line) <span class="info-dot" title="Examples: slack:#heron-ops, pagerduty:core-oncall, jira:ODA">i</span></span>
+      <textarea id="esc-channels" rows="4">slack:#heron-ops
 pagerduty:core-oncall
 jira:ODA</textarea>
     </label>
@@ -32,7 +32,7 @@ jira:ODA</textarea>
     </div>
   </div>
   <script>
-    const { getJson, renderKeyValueRows, runButtonAction, escapeHtml } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction, escapeHtml } = window.HeronUI;
 
     function parseChannels() {
       const lines = (document.getElementById("esc-channels").value || "").split("\n");

@@ -363,7 +363,7 @@ SLOs are auto-seeded on the first visit to `/slo`. Burn rates are computed from 
 | Customer discovery overrides | `config/discovery/customer/discovery.yaml` |
 | Anomaly thresholds | `config/thresholds.json` |
 | Cluster targets | `config/cluster_targets.json` |
-| Local database | `data/cortex_local.db` |
+| Local database | `data/heron_local.db` |
 | Jira auth cache | `data/jira_auth.json` |
 | Local runbooks | `docs/runbooks/*.md` |
 | API documentation | `http://localhost:8080/docs` |

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Jira Queries{% endblock %}
-{% block header_title %}Cortex Jira Queries{% endblock %}
+{% block title %}Heron Jira Queries{% endblock %}
+{% block header_title %}Heron Jira Queries{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -22,7 +22,7 @@
     </div>
   </div>
   <script>
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
     const editor = document.getElementById("queries-editor");
 
     async function loadQueries() {

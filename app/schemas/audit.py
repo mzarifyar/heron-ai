@@ -1,4 +1,4 @@
-"""Audit/event schemas for Cortex Explain.
+"""Audit/event schemas for Heron Explain.
 
 """
 

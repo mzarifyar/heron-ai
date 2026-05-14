@@ -2,7 +2,7 @@
 Utilities for exporting passive-mode run artifacts for evaluation.
 
 The exporter is intentionally side-effect free unless explicitly enabled via
-environment variables. When ``CORTEX_PASSIVE_EXPORT_DIR`` is set, the recorder
+environment variables. When ``HERON_PASSIVE_EXPORT_DIR`` is set, the recorder
 captures the processor summary and emits a deterministic JSON artifact that the
 evaluation harness can consume later.
 """
@@ -145,7 +145,7 @@ class PassiveRunRecorder:
 
     def __post_init__(self) -> None:
         """Handles post init protocol behavior using local state or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
-        root = os.getenv("CORTEX_PASSIVE_EXPORT_DIR")
+        root = os.getenv("HERON_PASSIVE_EXPORT_DIR")
         if not root:
             self.enabled = False
             return
@@ -153,8 +153,8 @@ class PassiveRunRecorder:
         export_path = Path(root).expanduser()
         export_path.mkdir(parents=True, exist_ok=True)
 
-        run_id = os.getenv("CORTEX_PASSIVE_RUN_ID") or uuid.uuid4().hex
-        scenario_id = os.getenv("CORTEX_SCENARIO_ID") or "default"
+        run_id = os.getenv("HERON_PASSIVE_RUN_ID") or uuid.uuid4().hex
+        scenario_id = os.getenv("HERON_SCENARIO_ID") or "default"
 
         self.enabled = True
         self.export_dir = export_path

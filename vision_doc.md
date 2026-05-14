@@ -1,4 +1,4 @@
-# Cortex-AI Reliability Platform — Vision Document
+# Heron Reliability Platform — Vision Document
 
 Created by **Mostafa Zarifyar**  
 Last updated: **Jan 29, 2026** (3 minute read)
@@ -11,17 +11,17 @@ Last updated: **Jan 29, 2026** (3 minute read)
 
 ## 1. Executive Summary
 
-Cortex is an intelligent reliability platform that turns raw observability data into **judgment-driven incident response**. It continuously observes telemetry, detects anomalies, decides what matters, executes safe auto-mitigation when allowed, verifies outcomes, escalates to humans only when needed, and captures a complete, explainable history for learning.
+Heron is an intelligent reliability platform that turns raw observability data into **judgment-driven incident response**. It continuously observes telemetry, detects anomalies, decides what matters, executes safe auto-mitigation when allowed, verifies outcomes, escalates to humans only when needed, and captures a complete, explainable history for learning.
 
-Cortex is **not a replacement for humans**. It is a **force multiplier**: reducing alert fatigue, accelerating remediation for known failure modes, standardizing high-quality incident handling, and preserving institutional reliability knowledge over time—without compromising safety, trust, or accountability.
+Heron is **not a replacement for humans**. It is a **force multiplier**: reducing alert fatigue, accelerating remediation for known failure modes, standardizing high-quality incident handling, and preserving institutional reliability knowledge over time—without compromising safety, trust, or accountability.
 
 ---
 
 ## 2. Overview
 
-Cortex sits between raw observability data and on-call engineers, acting as an autonomous first responder with judgment, guardrails, and full explainability.
+Heron sits between raw observability data and on-call engineers, acting as an autonomous first responder with judgment, guardrails, and full explainability.
 
-At its core, Cortex operates as a closed-loop reliability system:
+At its core, Heron operates as a closed-loop reliability system:
 
 **Observe → Detect → Decide → Act → Verify → Escalate → Learn**
 
@@ -51,7 +51,7 @@ Teams need a system that can:
 
 ### 4.1 Goals
 
-Cortex will:
+Heron will:
 
 - Reduce unnecessary paging through intelligent decision-making
 - Provide safe, policy-bound auto-mitigation
@@ -61,7 +61,7 @@ Cortex will:
 
 ### 4.2 Non-Goals
 
-Cortex will **not**:
+Heron will **not**:
 
 - Provide fully autonomous, unrestricted remediation
 - Replace human ownership of policy and risk
@@ -81,7 +81,7 @@ Cortex will **not**:
 
 ## 6. High-Level Architecture
 
-Cortex operates as a closed-loop system:
+Heron operates as a closed-loop system:
 
 **Observe → Detect → Decide → Act → Verify → Escalate → Learn**
 
@@ -95,24 +95,24 @@ Cortex operates as a closed-loop system:
 
 ### 6.1 Core Components
 
-- **Cortex Sense** – Signal ingestion from T2 Metrics Collector
-- **Cortex Insight** – Anomaly detection
-- **Cortex Core** – Decision engine
-- **Cortex Policy** – Guardrails and authority limits
-- **Cortex Reflex** – Auto-mitigation executor
-- **Cortex Verify** – Post-action validation
-- **Cortex Escalate** – Paging, Slack, Jira
-- **Cortex Explain** – Decision reasoning and audit
-- **Cortex Chronicle** – Postmortems and incident intelligence
-- **Cortex Control Plane** – Multi-env / multi-region management
+- **Heron Sense** – Signal ingestion from T2 Metrics Collector
+- **Heron Insight** – Anomaly detection
+- **Heron Core** – Decision engine
+- **Heron Policy** – Guardrails and authority limits
+- **Heron Reflex** – Auto-mitigation executor
+- **Heron Verify** – Post-action validation
+- **Heron Escalate** – Paging, Slack, Jira
+- **Heron Explain** – Decision reasoning and audit
+- **Heron Chronicle** – Postmortems and incident intelligence
+- **Heron Control Plane** – Multi-env / multi-region management
 
 ---
 
-## 7. Signal Ingestion (Cortex Sense)
+## 7. Signal Ingestion (Heron Sense)
 
 ### 7.1 Inputs from T2
 
-Cortex ingests:
+Heron ingests:
 
 - Raw metrics (CPU, memory, latency)
 - Aggregates (p95, p99, rolling windows)
@@ -132,7 +132,7 @@ This normalization enables consistent detection, routing, policy enforcement, an
 
 ---
 
-## 8. Anomaly Detection (Cortex Insight)
+## 8. Anomaly Detection (Heron Insight)
 
 ### 8.1 v1
 
@@ -156,9 +156,9 @@ These fields are first-class inputs to the decision engine and explainability la
 
 ---
 
-## 9. Decision Engine (Cortex Core)
+## 9. Decision Engine (Heron Core)
 
-Cortex Core evaluates anomalies using:
+Heron Core evaluates anomalies using:
 
 - Severity level
 - Metric type
@@ -177,7 +177,7 @@ The goal is to reduce noise while ensuring critical events receive immediate att
 
 ---
 
-## 10. Policy & Guardrails (Cortex Policy)
+## 10. Policy & Guardrails (Heron Policy)
 
 Policies define:
 
@@ -197,9 +197,9 @@ Policy immutability ensures decisions remain predictable and auditable during in
 
 ---
 
-## 11. Auto-Mitigation (Cortex Reflex)
+## 11. Auto-Mitigation (Heron Reflex)
 
-Cortex Reflex executes approved mitigation actions, including:
+Heron Reflex executes approved mitigation actions, including:
 
 - Kubernetes operations
 - API calls
@@ -215,9 +215,9 @@ All actions must be logged and attributable (what happened, why it happened, and
 
 ---
 
-## 12. Verification Loop (Cortex Verify)
+## 12. Verification Loop (Heron Verify)
 
-After mitigation, Cortex Verify evaluates:
+After mitigation, Heron Verify evaluates:
 
 - Original metrics
 - Derived health indicators
@@ -236,9 +236,9 @@ This closed-loop verification prevents automation from acting without feedback.
 
 ---
 
-## 13. Escalation & Notifications (Cortex Escalate)
+## 13. Escalation & Notifications (Heron Escalate)
 
-Cortex integrates with:
+Heron integrates with:
 
 - Pager systems (on-call)
 - Slack (structured notifications)
@@ -258,7 +258,7 @@ Notifications are structured to reduce cognitive load and accelerate human under
 
 ---
 
-## 14. Cortex Chronicle (Postmortems) UI
+## 14. Heron Chronicle (Postmortems) UI
 
 Chronicle provides:
 
@@ -301,7 +301,7 @@ All learning outputs are advisory and require human approval.
 
 ## 16. Security, Safety & Trust
 
-Cortex must provide:
+Heron must provide:
 
 - Full audit logs
 - Explainable decisions
@@ -342,4 +342,4 @@ Trust is a first-class requirement.
 
 ## 20. Summary
 
-Cortex introduces judgment, automation, and memory into incident response. By combining deterministic policy, safe automation, and explainable intelligence, Cortex improves reliability while preserving human trust and control.
+Heron introduces judgment, automation, and memory into incident response. By combining deterministic policy, safe automation, and explainable intelligence, Heron improves reliability while preserving human trust and control.

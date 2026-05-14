@@ -68,7 +68,7 @@ sources:
 ```bash
 make docker-restart
 # or
-docker-compose restart cortex-ai
+docker-compose restart heron
 ```
 
 ### Step 6: Test Discovery

@@ -292,7 +292,7 @@ export default function Incidents() {
           description={
             search || filterSev || filterStatus
               ? 'Try adjusting your filters.'
-              : 'Incidents will appear here once Cortex detects activity. Enable demo mode to see synthetic incidents.'
+              : 'Incidents will appear here once Heron detects activity. Enable demo mode to see synthetic incidents.'
           }
         />
       ) : (

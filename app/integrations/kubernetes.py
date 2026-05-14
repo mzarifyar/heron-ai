@@ -183,7 +183,7 @@ def get_kubeconfig_for_cluster(cluster: str, search_dirs: Optional[List[str]] = 
     # Support OHAI okec workflow where kubeconfig is written to a shared path.
     # Use it only when it appears to match the requested cluster.
     okec_kubeconfig = os.path.expanduser("~/.kube/config-eks-connect.yaml")
-    allow_okec_shared = _bool_env("CORTEX_KUBECONFIG_USE_OKEC_SHARED", False)
+    allow_okec_shared = _bool_env("HERON_KUBECONFIG_USE_OKEC_SHARED", False)
     if allow_okec_shared and _is_usable_kubeconfig(okec_kubeconfig) and _kubeconfig_matches_cluster(okec_kubeconfig, cluster):
         log("info", "Using okec kubeconfig for cluster {} at {}", cluster, okec_kubeconfig)
         snap = _snapshot_okec_kubeconfig(cluster, okec_kubeconfig)

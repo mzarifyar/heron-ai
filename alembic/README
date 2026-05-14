@@ -1,4 +1,4 @@
-Alembic migration environment for Cortex-AI.
+Alembic migration environment for Heron.
 
 Quick start:
   alembic upgrade head        # apply all migrations
@@ -6,5 +6,5 @@ Quick start:
   alembic downgrade -1        # roll back one migration
   alembic history             # show migration history
 
-DATABASE_URL defaults to sqlite:///./data/cortex.db.
+DATABASE_URL defaults to sqlite:///./data/heron.db.
 Set DATABASE_URL=postgresql://user:pass@host/db for PostgreSQL.

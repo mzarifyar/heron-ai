@@ -8,7 +8,7 @@ sources:
     batch_size: 200
     jitter_seconds: 5
   devops_portal:
-    # Disabled by default. Set CORTEX_ALERT_SOURCE_HOST and configure
+    # Disabled by default. Set HERON_ALERT_SOURCE_HOST and configure
     # config/devops_portal_targets.json to enable alert source pulling.
     enabled: false
     interval_seconds: 300

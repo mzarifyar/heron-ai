@@ -1,4 +1,4 @@
-"""Cortex Escalate orchestration service.
+"""Heron Escalate orchestration service.
 
 """
 
@@ -27,12 +27,12 @@ _POLICY_PATH = Path(_cfg("policy.yaml"))
 
 def _channel_is_live(channel_name: str) -> bool:
     """Return True when policy.yaml escalation_channels says this channel should
-    fire live in the current CORTEX_ENV.  Defaults to False on any error."""
+    fire live in the current HERON_ENV.  Defaults to False on any error."""
     try:
         import yaml  # type: ignore
         with _POLICY_PATH.open("r", encoding="utf-8") as fh:
             cfg = yaml.safe_load(fh) or {}
-        env = os.environ.get("CORTEX_ENV", "unknown")
+        env = os.environ.get("HERON_ENV", "unknown")
         ch_cfg = (cfg.get("escalation_channels") or {}).get(channel_name.lower()) or {}
         return bool((ch_cfg.get("live") or {}).get(env, False))
     except Exception:

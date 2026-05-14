@@ -1,4 +1,4 @@
-"""Cortex Learn: advisory action effectiveness tracking.
+"""Heron Learn: advisory action effectiveness tracking.
 
 """
 

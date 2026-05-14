@@ -43,8 +43,8 @@ def _load_yaml(path: Path) -> dict:
 
 
 def _alert_config_roots() -> list[Path]:
-    """Returns configured alert definition roots from CORTEX_ALERT_CONFIG_ROOT."""
-    root_override = (os.getenv("CORTEX_ALERT_CONFIG_ROOT") or "").strip()
+    """Returns configured alert definition roots from HERON_ALERT_CONFIG_ROOT."""
+    root_override = (os.getenv("HERON_ALERT_CONFIG_ROOT") or "").strip()
     if not root_override:
         return []
     base = Path(root_override).expanduser()
@@ -286,8 +286,8 @@ def _sort_tickets(items: list[dict], *, sort_by: str, sort_dir: str) -> list[dic
     return sorted(items, key=_sort_key, reverse=reverse)
 
 
-def _load_live_cortex_tickets(*, q: str | None, page: int, page_size: int, sort_by: str, sort_dir: str) -> tuple[list[dict], int]:
-    """Loads Cortex-generated tickets directly from Jira."""
+def _load_live_heron_tickets(*, q: str | None, page: int, page_size: int, sort_by: str, sort_dir: str) -> tuple[list[dict], int]:
+    """Loads Heron-generated tickets directly from Jira."""
     extra_filter = ""
     q_token = (q or "").strip()
     if q_token:
@@ -295,7 +295,7 @@ def _load_live_cortex_tickets(*, q: str | None, page: int, page_size: int, sort_
         extra_filter = f' AND (summary ~ "{safe}" OR key = "{safe}")'
     jql = (
         'project in ("ODA","CDA") AND issuetype = Incident '
-        'AND (summary ~ "CORTEX" OR labels = cortex_rollup)'
+        'AND (summary ~ "HERON" OR labels = heron_rollup)'
         f"{extra_filter} ORDER BY updated DESC"
     )
     issues = jira_api.search_issues(
@@ -362,7 +362,7 @@ def _load_live_cortex_tickets(*, q: str | None, page: int, page_size: int, sort_
                 "ticket_key": key,
                 "summary": summary,
                 "labels": fields.get("labels") or [],
-                "group": "cortex_generated",
+                "group": "heron_generated",
                 "context": context,
                 "ingest_status": "live_jira",
                 "first_seen_at": fields.get("created"),
@@ -416,15 +416,15 @@ def list_puller_runs(
 def list_ingested_jira_tickets(
     page: int = Query(default=1, ge=1),
     q: str | None = Query(default=None),
-    project: str | None = Query(default=None, description="Ticket source tab: ODA, CDA, or CORTEX"),
+    project: str | None = Query(default=None, description="Ticket source tab: ODA, CDA, or HERON"),
     sort_by: str = Query(default="last_seen_at"),
     sort_dir: str = Query(default="desc"),
 ) -> dict:
     """Lists ingested jira tickets using local reads or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
     page_size = TICKETS_PAGE_SIZE
     project_key = (project or "").strip().upper()
-    if project_key == "CORTEX":
-        items, total = _load_live_cortex_tickets(
+    if project_key == "HERON":
+        items, total = _load_live_heron_tickets(
             q=q,
             page=page,
             page_size=page_size,
@@ -511,7 +511,7 @@ def pullers_dashboard(request: Request) -> HTMLResponse:
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Cortex Pullers Dashboard</title>
+  <title>Heron Pullers Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root {{
@@ -585,7 +585,7 @@ def pullers_dashboard(request: Request) -> HTMLResponse:
         <div class="row" style="margin-bottom:8px;">
           <button id="tickets-tab-oda" type="button">ODA</button>
           <button id="tickets-tab-cda" type="button">CDA</button>
-          <button id="tickets-tab-cortex" type="button">Cortex</button>
+          <button id="tickets-tab-heron" type="button">Heron</button>
         </div>
         <table class="grid">
           <thead><tr><th>#</th><th></th><th><button type="button" data-sort-by="ticket_number">Ticket</button></th><th>Ticket Status</th><th><button type="button" data-sort-by="last_seen_at">Last Seen</button></th><th><button type="button" data-sort-by="group">Group</button></th><th><button type="button" data-sort-by="summary">Summary</button></th></tr></thead>
@@ -614,10 +614,10 @@ def pullers_dashboard(request: Request) -> HTMLResponse:
     function updateProjectTabState() {{
       const odaBtn = document.getElementById("tickets-tab-oda");
       const cdaBtn = document.getElementById("tickets-tab-cda");
-      const cortexBtn = document.getElementById("tickets-tab-cortex");
+      const heronBtn = document.getElementById("tickets-tab-heron");
       if (odaBtn) odaBtn.disabled = ticketsProject === "ODA";
       if (cdaBtn) cdaBtn.disabled = ticketsProject === "CDA";
-      if (cortexBtn) cortexBtn.disabled = ticketsProject === "CORTEX";
+      if (heronBtn) heronBtn.disabled = ticketsProject === "HERON";
     }}
     async function getJson(url, options) {{
       const response = await fetch(url, options || {{}});
@@ -756,8 +756,8 @@ def pullers_dashboard(request: Request) -> HTMLResponse:
       ticketsPage = 1;
       await loadTickets(1);
     }});
-    document.getElementById("tickets-tab-cortex").addEventListener("click", async () => {{
-      ticketsProject = "CORTEX";
+    document.getElementById("tickets-tab-heron").addEventListener("click", async () => {{
+      ticketsProject = "HERON";
       ticketsPage = 1;
       await loadTickets(1);
     }});

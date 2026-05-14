@@ -1,4 +1,4 @@
-"""In-memory storage abstractions for early Cortex-AI development.
+"""In-memory storage abstractions for early Heron development.
 
 """
 

@@ -1,4 +1,4 @@
-"""Utilities for Cortex logging-only (dry run) mode."""
+"""Utilities for Heron logging-only (dry run) mode."""
 from __future__ import annotations
 
 import atexit
@@ -20,16 +20,16 @@ try:  # pragma: no cover
 except Exception:  # pragma: no cover
     log_health = None
 
-CONFIG_ENV_VAR = "CORTEX_LOGGING_CONFIG_PATH"
+CONFIG_ENV_VAR = "HERON_LOGGING_CONFIG_PATH"
 DEFAULT_CONFIG_NAME = "logging_mode.json"
 OBJECT_STORAGE_CONFIG_NAME = "object_storage.json"
 LOCAL_OBJECT_STORAGE_SECRETS = os.path.join("local", "object_storage_secrets.json")
-LOGGING_AUTO_CREATE_ENV = "CORTEX_LOGGING_AUTO_CREATE"
+LOGGING_AUTO_CREATE_ENV = "HERON_LOGGING_AUTO_CREATE"
 
 _DEFAULT_CONFIG: Dict[str, Any] = {
     "logging_mode_enabled": False,
     "environment": "unknown",
-    "log_file_path": "/logs/runit/caa-cortex/cortex_activity.log",
+    "log_file_path": "/logs/runit/caa-heron/heron_activity.log",
     "redaction_patterns": [],
     "object_storage": {
         "enabled": False,
@@ -39,8 +39,8 @@ _DEFAULT_CONFIG: Dict[str, Any] = {
         "bucket_awsd": "",
         "account": "",
         "upload_mode": "sdk",
-        "object_prefix": "cortex/logging/",
-        "object_name_format": "cortex_activity_{yyyyMMdd}.log",
+        "object_prefix": "heron/logging/",
+        "object_name_format": "heron_activity_{yyyyMMdd}.log",
         "endpoint_override": "",
         "par_base_url_primary": "",
         "par_base_url_secondary": "",
@@ -310,7 +310,7 @@ def build_base_record(ticket: Dict[str, Any], *, environment: str, mode: str = "
         url = f"{base_url.rstrip('/')}/{key}"
     return {
         "timestamp": now,
-        "service": "cortex",
+        "service": "heron",
         "environment": environment,
         "mode": mode,
         "ticket": {
@@ -375,7 +375,7 @@ def _start_upload_thread(uploader: ObjectStorageUploader, file_path: str) -> Non
         except Exception as exc:  # pragma: no cover
             print(f"[logging_mode] Upload thread error: {exc}")
 
-    thread = threading.Thread(target=_run, name="cortex-log-upload", daemon=True)
+    thread = threading.Thread(target=_run, name="heron-log-upload", daemon=True)
     _upload_thread = thread
     thread.start()
 
@@ -393,7 +393,7 @@ def upload_logs_if_due(*, background: bool = True, refresh_config: bool = False)
         print(f"[logging_mode] Activity log file {log_path} missing; skipping upload trigger")
         if log_health:
             try:
-                log_health("cortex_logging_activity_file_missing", False, module="logging_mode", status="DOWN", state="missing")
+                log_health("heron_logging_activity_file_missing", False, module="logging_mode", status="DOWN", state="missing")
             except Exception:
                 pass
         return False

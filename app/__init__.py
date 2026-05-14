@@ -1,1 +1,1 @@
-"""Cortex-AI application package initialization."""
+"""Heron application package initialization."""

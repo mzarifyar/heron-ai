@@ -33,7 +33,7 @@ We intentionally avoid generating commands from stale naming data alone.
 ```bash
 export PROFILE="aws1.ssh"
 export AUTH="security_token"
-export WORKDIR="$HOME/code/cortex-AI/data/aws_truth"
+export WORKDIR="$HOME/code/heron-AI/data/aws_truth"
 mkdir -p "$WORKDIR"
 
 aws --profile "$PROFILE" session validate --local
@@ -72,11 +72,11 @@ echo "HOME_REGION=$HOME_REGION"
 
 ## Phase 2: Build Missing Cluster Input
 
-From the current Cortex cluster access export:
+From the current Heron cluster access export:
 
 ```bash
 jq -r '.entries[] | [.environment,.region,.cluster] | @tsv' \
-  "$HOME/code/cortex-AI/data/kubeconfig_missing_clusters_filtered.json" \
+  "$HOME/code/heron-AI/data/kubeconfig_missing_clusters_filtered.json" \
   > "$WORKDIR/missing_clusters.tsv"
 ```
 
@@ -108,7 +108,7 @@ for line in text:
         tid = m_tid.group(1)
         for e in current_envs:
             rows.append((e, tid))
-out = pathlib.Path.home() / "code/cortex-AI/data/aws_truth/env_account.tsv"
+out = pathlib.Path.home() / "code/heron-AI/data/aws_truth/env_account.tsv"
 out.write_text("".join(f"{e}\t{tid}\n" for e, tid in sorted(set(rows))))
 print(out)
 PY
@@ -177,8 +177,8 @@ jq -r '.[].name' "$WORKDIR/oc1_active_clusters.json" | sort -u > "$WORKDIR/oc1_a
 python3 - <<'PY'
 import json, pathlib
 home = pathlib.Path.home()
-work = home / "code/cortex-AI/data/aws_truth"
-missing = json.loads((home / "code/cortex-AI/data/kubeconfig_missing_clusters_filtered.json").read_text()).get("entries", [])
+work = home / "code/heron-AI/data/aws_truth"
+missing = json.loads((home / "code/heron-AI/data/kubeconfig_missing_clusters_filtered.json").read_text()).get("entries", [])
 active = set((work / "oc1_active_names.txt").read_text().splitlines())
 out = []
 for e in missing:
@@ -244,11 +244,11 @@ After batch runs, classify each command:
 
 Key artifacts written under:
 
-- `~/code/cortex-AI/data/aws_truth/env_account.tsv`
-- `~/code/cortex-AI/data/aws_truth/oc1_accounts.tsv`
-- `~/code/cortex-AI/data/aws_truth/oc1_active_clusters.json`
-- `~/code/cortex-AI/data/aws_truth/oc1_update_commands.sh`
-- `~/code/cortex-AI/data/aws_truth/bootstrap_run.log` (if logging enabled)
+- `~/code/heron-AI/data/aws_truth/env_account.tsv`
+- `~/code/heron-AI/data/aws_truth/oc1_accounts.tsv`
+- `~/code/heron-AI/data/aws_truth/oc1_active_clusters.json`
+- `~/code/heron-AI/data/aws_truth/oc1_update_commands.sh`
+- `~/code/heron-AI/data/aws_truth/bootstrap_run.log` (if logging enabled)
 
 Use these as auditable evidence for bootstrap decisions and outcomes.
 
@@ -275,14 +275,14 @@ It now supports interactive AWS auth automatically:
 ### Plan only (safe default)
 
 ```bash
-/Users/$USER/code/cortex-AI/scripts/automate_kubeconfig_bootstrap.py \
+/Users/$USER/code/heron-AI/scripts/automate_kubeconfig_bootstrap.py \
   --profile aws1.ssh
 ```
 
 ### Plan only with custom interactive auth inputs
 
 ```bash
-/Users/$USER/code/cortex-AI/scripts/automate_kubeconfig_bootstrap.py \
+/Users/$USER/code/heron-AI/scripts/automate_kubeconfig_bootstrap.py \
   --profile aws1.ssh \
   --auth-region us-ashburn-1 \
   --account-name aws_operator_access
@@ -291,7 +291,7 @@ It now supports interactive AWS auth automatically:
 ### Execute all planned rows serially
 
 ```bash
-/Users/$USER/code/cortex-AI/scripts/automate_kubeconfig_bootstrap.py \
+/Users/$USER/code/heron-AI/scripts/automate_kubeconfig_bootstrap.py \
   --profile aws1.ssh \
   --execute
 ```
@@ -299,7 +299,7 @@ It now supports interactive AWS auth automatically:
 ### Execute first N rows
 
 ```bash
-/Users/$USER/code/cortex-AI/scripts/automate_kubeconfig_bootstrap.py \
+/Users/$USER/code/heron-AI/scripts/automate_kubeconfig_bootstrap.py \
   --profile aws1.ssh \
   --execute \
   --limit 10

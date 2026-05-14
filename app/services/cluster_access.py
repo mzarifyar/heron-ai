@@ -1,4 +1,4 @@
-"""Discover and validate Kubernetes cluster access for Cortex-AI operations."""
+"""Discover and validate Kubernetes cluster access for Heron operations."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ import yaml
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_CLUSTER_SCAN_ROOT = Path(
-    os.getenv("CORTEX_CLUSTER_SCAN_ROOT", str(Path.home() / ".kube"))
+    os.getenv("HERON_CLUSTER_SCAN_ROOT", str(Path.home() / ".kube"))
 ).expanduser()
 DEFAULT_AUDIT_PATH = ROOT_DIR / "data" / "cluster_access_audit.json"
 DEFAULT_CLUSTER_TARGETS_PATH = ROOT_DIR / "config" / "cluster_targets.json"
@@ -70,8 +70,8 @@ SCANNABLE_SUFFIXES = {
     ".hcl",
 }
 
-DEFAULT_K8S_ACCOUNT_NAME = os.getenv("CORTEX_K8S_ACCOUNT_NAME", "k8s_operator").strip() or "k8s_operator"
-DEFAULT_K8S_AUTH_MODE = os.getenv("CORTEX_K8S_AUTH_MODE", "kubeconfig").strip() or "kubeconfig"
+DEFAULT_K8S_ACCOUNT_NAME = os.getenv("HERON_K8S_ACCOUNT_NAME", "k8s_operator").strip() or "k8s_operator"
+DEFAULT_K8S_AUTH_MODE = os.getenv("HERON_K8S_AUTH_MODE", "kubeconfig").strip() or "kubeconfig"
 DEFAULT_REALM_PROFILE_MAP = {
     "AWS1": "aws1.ssh",
     "AWS2": "aws2.ssh",
@@ -641,7 +641,7 @@ class ClusterAccessService:
     def _configured_realm_profiles(self) -> Dict[str, str]:
         """Builds configured realm-profile map and returns entries (e.g., {"AWS1":"aws1.ssh"}), while bad env config falls back to defaults."""
         mapping: Dict[str, str] = dict(DEFAULT_REALM_PROFILE_MAP)
-        raw = str(os.getenv("CORTEX_REALM_PROFILE_MAP") or "").strip()
+        raw = str(os.getenv("HERON_REALM_PROFILE_MAP") or "").strip()
         if raw:
             for token in raw.split(","):
                 part = str(token or "").strip()
@@ -895,7 +895,7 @@ class ClusterAccessService:
             age_seconds = 1_000_000
         refresh_interval = max(
             15,
-            int((os.getenv("CORTEX_REALM_AUTH_CHECK_INTERVAL_SECONDS") or "120").strip() or "120"),
+            int((os.getenv("HERON_REALM_AUTH_CHECK_INTERVAL_SECONDS") or "120").strip() or "120"),
         )
         if age_seconds >= refresh_interval:
             return self.refresh_realm_auth_status(auto_refresh_session=True, persist=True)
@@ -903,7 +903,7 @@ class ClusterAccessService:
 
     def start_realm_auth_monitor(self) -> None:
         """Starts background realm auth monitor and returns None, while duplicate starts are ignored."""
-        enabled = str(os.getenv("CORTEX_REALM_AUTH_MONITOR_ENABLED", "true")).strip().lower() in {"1", "true", "yes", "on"}
+        enabled = str(os.getenv("HERON_REALM_AUTH_MONITOR_ENABLED", "true")).strip().lower() in {"1", "true", "yes", "on"}
         if not enabled:
             return
         with self._realm_auth_lock:
@@ -931,7 +931,7 @@ class ClusterAccessService:
                 pass
             interval = max(
                 15,
-                int((os.getenv("CORTEX_REALM_AUTH_CHECK_INTERVAL_SECONDS") or "120").strip() or "120"),
+                int((os.getenv("HERON_REALM_AUTH_CHECK_INTERVAL_SECONDS") or "120").strip() or "120"),
             )
             self._realm_auth_stop.wait(timeout=interval)
 
@@ -998,7 +998,7 @@ class ClusterAccessService:
         account = self._account_suffix_for_cluster(cluster)
         script = self.cluster_scan_root / "scripts" / "update_kubeconfig.sh"
         bulk_script = self.cluster_scan_root / "scripts" / "update-all-kubeconfigs.sh"
-        host_root = str(os.getenv("CORTEX_CLUSTER_SCAN_HOST_ROOT") or str(Path.home() / ".kube")).strip()
+        host_root = str(os.getenv("HERON_CLUSTER_SCAN_HOST_ROOT") or str(Path.home() / ".kube")).strip()
         host_script = f"{host_root}/scripts/update_kubeconfig.sh"
         host_bulk_script = f"{host_root}/scripts/update-all-kubeconfigs.sh"
         update_cmd = ""
@@ -1111,7 +1111,7 @@ class ClusterAccessService:
         return rows
 
     def discover(self, *, include_government: bool = False, max_clusters: int = 0, persist: bool = True) -> Dict[str, Any]:
-        """Scans CORTEX_CLUSTER_SCAN_ROOT for cluster names and returns inventory rows (e.g., {\"count\":2,\"targets\":[...]}), while unreadable files are ignored."""
+        """Scans HERON_CLUSTER_SCAN_ROOT for cluster names and returns inventory rows (e.g., {\"count\":2,\"targets\":[...]}), while unreadable files are ignored."""
         roots = [self.cluster_scan_root]
         scan_errors: List[str] = []
         kubeconfig_clusters = self._clusters_from_local_kubeconfigs()
@@ -1526,7 +1526,7 @@ class ClusterAccessService:
         non_active = 0
         skipped = 0
         results: List[Dict[str, Any]] = []
-        auto_refresh_session = str(os.getenv("CORTEX_CLUSTER_ACCESS_AUTO_REFRESH_SESSION", "true")).strip().lower() in {
+        auto_refresh_session = str(os.getenv("HERON_CLUSTER_ACCESS_AUTO_REFRESH_SESSION", "true")).strip().lower() in {
             "1",
             "true",
             "yes",
@@ -1825,7 +1825,7 @@ class ClusterAccessService:
         skipped = 0
         non_active = 0
         results: List[Dict[str, Any]] = []
-        auto_refresh_session = str(os.getenv("CORTEX_CLUSTER_ACCESS_AUTO_REFRESH_SESSION", "true")).strip().lower() in {
+        auto_refresh_session = str(os.getenv("HERON_CLUSTER_ACCESS_AUTO_REFRESH_SESSION", "true")).strip().lower() in {
             "1",
             "true",
             "yes",

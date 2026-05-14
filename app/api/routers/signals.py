@@ -1,4 +1,4 @@
-"""Signal ingestion routes for Cortex Sense.
+"""Signal ingestion routes for Heron Sense.
 
 """
 

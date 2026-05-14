@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Guard Console{% endblock %}
-{% block header_title %}Cortex Guard Console{% endblock %}
+{% block title %}Heron Guard Console{% endblock %}
+{% block header_title %}Heron Guard Console{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -22,7 +22,7 @@ mock://status/OK</textarea>
     </table>
   </div>
   <script>
-    const { getJson, runButtonAction, escapeHtml } = window.CortexUI;
+    const { getJson, runButtonAction, escapeHtml } = window.HeronUI;
 
     async function runCheck() {
       const references = (document.getElementById("refs-editor").value || "")

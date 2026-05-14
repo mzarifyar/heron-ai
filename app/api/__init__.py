@@ -1,4 +1,4 @@
-"""Public API surface for Cortex-AI (FastAPI routers, dependencies).
+"""Public API surface for Heron (FastAPI routers, dependencies).
 
 """
 

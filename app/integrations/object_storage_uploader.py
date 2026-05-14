@@ -113,7 +113,7 @@ class ObjectStorageUploader:
         """Builds object name using local reads or integration calls and returns a string value (e.g., "ok"), may raise ValueError for bad input while dependency errors may bubble."""
         if now is None:
             now = datetime.now(timezone.utc)
-        fmt = self.os_cfg.get("object_name_format") or "cortex_activity_{yyyyMMddHHmmss}.log"
+        fmt = self.os_cfg.get("object_name_format") or "heron_activity_{yyyyMMddHHmmss}.log"
         replacements = {
             "{yyyyMMddHHmmss}": now.strftime("%Y%m%d%H%M%S"),
             "{yyyyMMddHHmm}": now.strftime("%Y%m%d%H%M"),

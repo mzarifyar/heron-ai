@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex DevOps Admin{% endblock %}
-{% block header_title %}Cortex DevOps Admin{% endblock %}
+{% block title %}Heron DevOps Admin{% endblock %}
+{% block header_title %}Heron DevOps Admin{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -44,7 +44,7 @@
     </details>
   </div>
   <script>
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
     let lastDiscovery = null;
 
     async function refreshStatus() {

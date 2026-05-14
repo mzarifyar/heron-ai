@@ -114,10 +114,10 @@ class ClusterAccessApplyRequest(BaseModel):
 def _actor_role(request: Request | None) -> str:
     """Builds actor role using local state or integration calls and returns a string value (e.g., "ok"), may raise ValueError for bad input while dependency errors may bubble."""
     if request is not None:
-        header_role = str(request.headers.get("x-cortex-role") or "").strip().lower()
+        header_role = str(request.headers.get("x-heron-role") or "").strip().lower()
         if header_role:
             return header_role
-    return str(os.getenv("CORTEX_OPERATOR_ROLE") or "viewer").strip().lower() or "viewer"
+    return str(os.getenv("HERON_OPERATOR_ROLE") or "viewer").strip().lower() or "viewer"
 
 
 def _require_devops_admin_write(request: Request | None = None) -> None:

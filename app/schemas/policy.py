@@ -1,4 +1,4 @@
-"""Policy schema models for Cortex guardrail evaluation.
+"""Policy schema models for Heron guardrail evaluation.
 
 """
 

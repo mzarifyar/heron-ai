@@ -1,4 +1,4 @@
-"""Jira search helpers ported from the legacy Cortex processor.
+"""Jira search helpers ported from the legacy Heron processor.
 
 Provides the `search_on_call_tickets` function that wraps the shared Jira
 integration with project-specific JQL and pagination settings.

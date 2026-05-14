@@ -1,4 +1,4 @@
-"""Cortex Insight: static threshold anomaly detection.
+"""Heron Insight: static threshold anomaly detection.
 
 """
 

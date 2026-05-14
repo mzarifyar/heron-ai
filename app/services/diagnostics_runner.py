@@ -105,8 +105,8 @@ class DiagnosticsRunner:
 
     def _select_pod_down_targets(self, unhealthy_pods: List[Dict[str, str]]) -> Dict[str, Any]:
         """Builds pod-down target list using local state or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
-        target_pods = self._parse_csv_set(os.getenv("CORTEX_POD_DOWN_TARGET_PODS_CSV"))
-        target_namespaces = self._parse_csv_set(os.getenv("CORTEX_POD_DOWN_TARGET_NAMESPACES_CSV"))
+        target_pods = self._parse_csv_set(os.getenv("HERON_POD_DOWN_TARGET_PODS_CSV"))
+        target_namespaces = self._parse_csv_set(os.getenv("HERON_POD_DOWN_TARGET_NAMESPACES_CSV"))
         selected = list(unhealthy_pods)
         policy = "auto_detected_unhealthy"
         if target_namespaces:
@@ -130,8 +130,8 @@ class DiagnosticsRunner:
             "rbk-infrastructure-kubernetes-kubernetes-pod-evicted",
             "rbk-evicted-pod-cleanup",
         }:
-            delete_all_non_running = self._bool_env("CORTEX_EVICTED_DELETE_ALL_NON_RUNNING", False)
-            delete_evicted_only = self._bool_env("CORTEX_EVICTED_DELETE_EVICTED_ONLY", True)
+            delete_all_non_running = self._bool_env("HERON_EVICTED_DELETE_ALL_NON_RUNNING", False)
+            delete_evicted_only = self._bool_env("HERON_EVICTED_DELETE_EVICTED_ONLY", True)
             if delete_all_non_running:
                 policy = "all_non_running"
             elif delete_evicted_only:
@@ -153,7 +153,7 @@ class DiagnosticsRunner:
         kubeconfig = get_kubeconfig_for_cluster(cluster_name, account_id=account_id)
         if kubeconfig:
             return {"resolved": True, "cluster": cluster_name, "kubeconfig": kubeconfig, "reason": "resolved"}
-        require_cluster_context = self._bool_env("CORTEX_DIAGNOSTICS_REQUIRE_CLUSTER_CONTEXT", True)
+        require_cluster_context = self._bool_env("HERON_DIAGNOSTICS_REQUIRE_CLUSTER_CONTEXT", True)
         if require_cluster_context:
             return {
                 "resolved": False,
@@ -214,8 +214,8 @@ class DiagnosticsRunner:
         namespace_scope: str | None,
     ) -> List[Dict[str, Any]]:
         """Collects pod evidence using local reads or integration calls and returns a list result (e.g., []), may raise ValueError for bad input while dependency errors may bubble."""
-        limit = int((os.getenv("CORTEX_DIAGNOSTICS_SAFE_EVIDENCE_PODS") or "25").strip() or "25")
-        log_tail_lines = int((os.getenv("CORTEX_DIAGNOSTICS_LOG_TAIL_LINES") or "300").strip() or "300")
+        limit = int((os.getenv("HERON_DIAGNOSTICS_SAFE_EVIDENCE_PODS") or "25").strip() or "25")
+        log_tail_lines = int((os.getenv("HERON_DIAGNOSTICS_LOG_TAIL_LINES") or "300").strip() or "300")
         namespace_filter = (namespace_scope or "").strip()
         evidence: List[Dict[str, Any]] = []
         for pod in unhealthy_pods[: max(1, min(200, limit))]:
@@ -502,7 +502,7 @@ class DiagnosticsRunner:
         kubeconfig: str | None,
     ) -> List[Dict[str, Any]]:
         """Collects node read-only evidence using local reads or integration calls and returns a list result (e.g., []), may raise ValueError for bad input while dependency errors may bubble."""
-        limit = int((os.getenv("CORTEX_DIAGNOSTICS_SAFE_EVIDENCE_NODES") or "25").strip() or "25")
+        limit = int((os.getenv("HERON_DIAGNOSTICS_SAFE_EVIDENCE_NODES") or "25").strip() or "25")
         evidence: List[Dict[str, Any]] = []
         for node in nodes[: max(1, min(200, limit))]:
             name = str(node.get("name") or "").strip()
@@ -639,7 +639,7 @@ class DiagnosticsRunner:
         kubeconfig: str | None,
     ) -> List[Dict[str, Any]]:
         """Collects maintenance node evidence using local reads or integration calls and returns a list result (e.g., []), may raise ValueError for bad input while dependency errors may bubble."""
-        limit = int((os.getenv("CORTEX_DIAGNOSTICS_SAFE_EVIDENCE_NODES") or "25").strip() or "25")
+        limit = int((os.getenv("HERON_DIAGNOSTICS_SAFE_EVIDENCE_NODES") or "25").strip() or "25")
         evidence: List[Dict[str, Any]] = []
         for node in nodes[: max(1, min(200, limit))]:
             name = str(node.get("name") or "").strip()
@@ -1217,7 +1217,7 @@ class DiagnosticsRunner:
                 "actions": [],
                 "deleted_count": 0,
             }
-        max_pods = int((os.getenv("CORTEX_DIAGNOSTICS_MAX_INVASIVE_PODS") or "50").strip() or "50")
+        max_pods = int((os.getenv("HERON_DIAGNOSTICS_MAX_INVASIVE_PODS") or "50").strip() or "50")
         namespace_filter = (namespace_scope or "").strip()
         for pod in targets[: max(1, min(200, max_pods))]:
             ns = str(pod.get("namespace") or "").strip()
@@ -1335,7 +1335,7 @@ class DiagnosticsRunner:
                 kubeconfig=kubeconfig,
                 namespace_scope=namespace_scope,
                 threshold_percent=threshold_percent,
-                target_quota_name=str(os.getenv("CORTEX_QUOTA_TARGET_NAME") or "").strip() or None,
+                target_quota_name=str(os.getenv("HERON_QUOTA_TARGET_NAME") or "").strip() or None,
             )
             candidates = snapshot.get("candidates") if isinstance(snapshot.get("candidates"), list) else []
             high_ns = {
@@ -1761,10 +1761,10 @@ class DiagnosticsRunner:
         allow_invasive: bool = True,
     ) -> Dict[str, Any]:
         """Builds execute workflow using local reads or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
-        mode_dry_run = self._bool_env("CORTEX_DIAGNOSTICS_DRY_RUN", True) if dry_run is None else bool(dry_run)
-        invasive_enabled = self._bool_env("CORTEX_DIAGNOSTICS_INVASIVE_ENABLED", False) and bool(allow_invasive)
-        overwatch_seconds = int((os.getenv("CORTEX_DIAGNOSTICS_OVERWATCH_SECONDS") or "120").strip() or "120")
-        poll_seconds = int((os.getenv("CORTEX_DIAGNOSTICS_OVERWATCH_POLL_SECONDS") or "10").strip() or "10")
+        mode_dry_run = self._bool_env("HERON_DIAGNOSTICS_DRY_RUN", True) if dry_run is None else bool(dry_run)
+        invasive_enabled = self._bool_env("HERON_DIAGNOSTICS_INVASIVE_ENABLED", False) and bool(allow_invasive)
+        overwatch_seconds = int((os.getenv("HERON_DIAGNOSTICS_OVERWATCH_SECONDS") or "120").strip() or "120")
+        poll_seconds = int((os.getenv("HERON_DIAGNOSTICS_OVERWATCH_POLL_SECONDS") or "10").strip() or "10")
         started_at = datetime.now(timezone.utc).isoformat()
         namespace_scope = str((context or {}).get("namespace") or "").strip() or None
         cluster_context = self._resolve_kubeconfig(context)

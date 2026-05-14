@@ -1,12 +1,12 @@
 # ODA Automation Conversion Report
 
 - Generated on: 2026-04-25T01:04:17Z
-- Source root: `$USER/code/cortex-AI/mitigations/runbooks/oda`
+- Source root: `$USER/code/heron-AI/mitigations/runbooks/oda`
 - Shepherd grouping reference: `$USER/code/bots-terraform/shepherd/shared_modules/t2/alarms`
 - Source runbooks discovered: **441**
 - Converted wrappers generated: **441**
-- Strategy file: `$USER/code/cortex-AI/mitigations/automation/strategy/oda_alert_group_strategy.yaml`
-- Plans root: `$USER/code/cortex-AI/mitigations/automation/plans`
+- Strategy file: `$USER/code/heron-AI/mitigations/automation/strategy/oda_alert_group_strategy.yaml`
+- Plans root: `$USER/code/heron-AI/mitigations/automation/plans`
 
 ## Group Counts
 - `atp`: 16
@@ -65,8 +65,8 @@
 - None
 
 ## Output Locations
-- Shared automation engine: `$USER/code/cortex-AI/mitigations/automation/runbooks/_shared/pod_recovery_3pass.sh`
-- Per-runbook wrappers: `$USER/code/cortex-AI/mitigations/automation/runbooks`
-- Modular plan files: `$USER/code/cortex-AI/mitigations/automation/plans`
-- Strategy mapping: `$USER/code/cortex-AI/mitigations/automation/strategy/oda_alert_group_strategy.yaml`
-- Source inventory: `$USER/code/cortex-AI/mitigations/automation/inventory/oda_source_runbooks.txt`
+- Shared automation engine: `$USER/code/heron-AI/mitigations/automation/runbooks/_shared/pod_recovery_3pass.sh`
+- Per-runbook wrappers: `$USER/code/heron-AI/mitigations/automation/runbooks`
+- Modular plan files: `$USER/code/heron-AI/mitigations/automation/plans`
+- Strategy mapping: `$USER/code/heron-AI/mitigations/automation/strategy/oda_alert_group_strategy.yaml`
+- Source inventory: `$USER/code/heron-AI/mitigations/automation/inventory/oda_source_runbooks.txt`

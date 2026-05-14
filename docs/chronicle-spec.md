@@ -1,8 +1,8 @@
-# Cortex Chronicle Spec
+# Heron Chronicle Spec
 
 ## Overview
 
-Cortex Chronicle is the incident timeline and postmortem system for Cortex services. It provides immutable event capture, human annotations, incident linking, and postmortem records that can be audited alongside Explain logs.
+Heron Chronicle is the incident timeline and postmortem system for Heron services. It provides immutable event capture, human annotations, incident linking, and postmortem records that can be audited alongside Explain logs.
 
 ## Data Model
 
@@ -26,7 +26,7 @@ Cortex Chronicle is the incident timeline and postmortem system for Cortex servi
 
 ## Event Ingestion Contract
 
-All Cortex services emit event records to Chronicle through the Chronicle gateway:
+All Heron services emit event records to Chronicle through the Chronicle gateway:
 
 - Sense → `ingest.accepted` / `ingest.dropped`
 - Insight → `anomaly.detected`

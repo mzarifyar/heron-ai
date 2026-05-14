@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models for Cortex persistent storage."""
+"""SQLAlchemy ORM models for Heron persistent storage."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ class TimelineEvent(Base):
     incident_id: Mapped[str]      = mapped_column(ForeignKey("incidents.id", ondelete="CASCADE"), index=True)
     event_type:  Mapped[str]      = mapped_column(String(80))
     description: Mapped[str]      = mapped_column(Text)
-    actor:       Mapped[str]      = mapped_column(String(50), default="cortex")   # cortex / human
+    actor:       Mapped[str]      = mapped_column(String(50), default="heron")   # heron / human
     severity:    Mapped[str]      = mapped_column(String(20), default="info")
     timestamp:   Mapped[datetime] = mapped_column(DateTime, index=True)
     metadata_:   Mapped[Any]      = mapped_column("metadata", JSON, nullable=True)

@@ -1,4 +1,4 @@
-"""Centralized logging helper for Cortex."""
+"""Centralized logging helper for Heron."""
 
 from __future__ import annotations
 

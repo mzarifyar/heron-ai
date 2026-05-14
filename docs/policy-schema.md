@@ -1,6 +1,6 @@
-# Cortex Policy Schema
+# Heron Policy Schema
 
-This document defines the policy layering used by Cortex Core before emitting action plans.
+This document defines the policy layering used by Heron Core before emitting action plans.
 
 ## Evaluation Order
 

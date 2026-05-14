@@ -1,4 +1,4 @@
-"""In-memory anomaly store for Cortex Insight.
+"""In-memory anomaly store for Heron Insight.
 
 """
 

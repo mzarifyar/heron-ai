@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Control Plane{% endblock %}
-{% block header_title %}Cortex Control Plane{% endblock %}
+{% block title %}Heron Control Plane{% endblock %}
+{% block header_title %}Heron Control Plane{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -32,7 +32,7 @@
     </div>
   </div>
   <script>
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
 
     async function refreshControl() {
       const payload = await getJson("/api/v1/ops/control-plane");

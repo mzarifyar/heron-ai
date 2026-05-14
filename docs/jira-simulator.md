@@ -1,17 +1,17 @@
 # Jira Simulator
 
-The Jira Simulator provides deterministic, Jira-compatible payloads for validating Cortex detection and remediation flows without reaching a live Jira tenant. It implements the Jira endpoints currently consumed by Cortex, supports dataset-driven replays, deterministic noise injection, and sanitized "known-bad" scenario replays. The simulator remains disabled by default and is activated only through explicit configuration.
+The Jira Simulator provides deterministic, Jira-compatible payloads for validating Heron detection and remediation flows without reaching a live Jira tenant. It implements the Jira endpoints currently consumed by Heron, supports dataset-driven replays, deterministic noise injection, and sanitized "known-bad" scenario replays. The simulator remains disabled by default and is activated only through explicit configuration.
 
 ## Supported Endpoints
 
-The simulator mirrors the subset of the Jira REST API that Cortex calls today:
+The simulator mirrors the subset of the Jira REST API that Heron calls today:
 
 - `GET /rest/api/2/search` – supports `jql`, `startAt`, and `maxResults`. Returns Jira-style pages with `issues[]` entries containing `key`, `id`, and `fields`.
-- `GET /rest/api/2/issue/{key}` – returns a Jira-compatible issue document including the fields requested by Cortex.
+- `GET /rest/api/2/issue/{key}` – returns a Jira-compatible issue document including the fields requested by Heron.
 - `GET /rest/api/2/issue/{key}/comment` – returns `{ "comments": [...] }`.
 - `POST /rest/api/2/issue/{key}/comment` – accepts `{ "body": "..." }` and appends a deterministic comment.
 - `PUT /rest/api/2/issue/{key}` – accepts label update payloads (`{"update": {"labels": [{"add": "processed"}]}}`).
-- `POST /rest/api/2/issue` – creates a synthetic issue when Cortex exercises the ticket creation flow.
+- `POST /rest/api/2/issue` – creates a synthetic issue when Heron exercises the ticket creation flow.
 - `GET /rest/api/2/field` – returns a minimal set of field metadata used by `get_fields_map`.
 
 Additional simulator endpoints:
@@ -41,7 +41,7 @@ Enable the simulator via `config/settings.json` or environment variables:
 }
 ```
 
-When `jira.simulator.enabled` is `true`, `get_jira_base_url()` resolves to `http://{host}:{port}/rest/api/2`. Cortex can therefore target the simulator by setting the configuration before importing `app.integrations.jira`.
+When `jira.simulator.enabled` is `true`, `get_jira_base_url()` resolves to `http://{host}:{port}/rest/api/2`. Heron can therefore target the simulator by setting the configuration before importing `app.integrations.jira`.
 
 ### CLI Helper
 
@@ -152,7 +152,7 @@ Per-run metrics are available at `/simulator/run/{run_id}/metrics`.
 
 The test suite exercises:
 
-- Search, issue fetch, comment, label update, and issue creation contracts via the existing Cortex Jira client.
+- Search, issue fetch, comment, label update, and issue creation contracts via the existing Heron Jira client.
 - Determinism: identical datasets + seeds yield identical sequences and `/search` results.
 - Noise schema safety: all synthetic noise tickets parse through `get_issue_full` and `get_issue_labels` without schema mismatches.
 - Known-bad fidelity: emitted issues preserve sanitized keys, summaries, and timestamps defined in the dataset.

@@ -1,4 +1,4 @@
-"""Verification schemas powering Cortex Verify.
+"""Verification schemas powering Heron Verify.
 
 """
 

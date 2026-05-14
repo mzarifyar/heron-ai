@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Config Studio{% endblock %}
-{% block header_title %}Cortex Config Studio{% endblock %}
+{% block title %}Heron Config Studio{% endblock %}
+{% block header_title %}Heron Config Studio{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -25,7 +25,7 @@
     <table class="grid"><tbody id="config-meta-body"></tbody></table>
   </div>
   <script>
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
 
     function selectedName() {
       return document.getElementById("config-name").value;

@@ -1,11 +1,11 @@
 services:
-  cortex-ai:
-    image: cortex-ai:local
+  heron:
+    image: heron:local
     build:
       context: .
       dockerfile: Dockerfile
       target: backend
-    container_name: cortex-ai
+    container_name: heron
     restart: unless-stopped
     env_file:
       - .env
@@ -16,11 +16,11 @@ services:
       - ${HOME}/.kube:/root/.kube:ro
       - ${HOME}/.aws:/root/.aws:ro
     ports:
-      - "${CORTEX_API_PORT:-8080}:8080"
+      - "${HERON_API_PORT:-8080}:8080"
     environment:
-      CORTEX_API_HOST: 0.0.0.0
+      HERON_API_HOST: 0.0.0.0
       PYTHONUNBUFFERED: "1"
-      CORTEX_BOTS_TERRAFORM_ROOT: /workspace/bots-terraform
+      HERON_BOTS_TERRAFORM_ROOT: /workspace/bots-terraform
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
       interval: 30s

@@ -29,7 +29,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      CORTEX_API_HOST: 0.0.0.0
+      HERON_API_HOST: 0.0.0.0
       PYTHONUNBUFFERED: "1"
       # Instance Principals — OCI SDK picks these up automatically on OCI VMs.
       # No OCI_KEY_FILE or OCI_USER_OCID needed when running on the instance.

@@ -1,8 +1,8 @@
-# Cortex Roadmap+ (v2+)
+# Heron Roadmap+ (v2+)
 
 ## Goal
 
-Capture follow-on capabilities that build on the core Cortex loop without destabilizing production flows.
+Capture follow-on capabilities that build on the core Heron loop without destabilizing production flows.
 
 ## Incident Linking
 

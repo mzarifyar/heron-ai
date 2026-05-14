@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Explain UI{% endblock %}
-{% block header_title %}Cortex Explain{% endblock %}
+{% block title %}Heron Explain UI{% endblock %}
+{% block header_title %}Heron Explain{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -53,7 +53,7 @@
 
   <script>
     const eventsUrl = "{{ events_url }}";
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
     let eventsCache = [];
 
     function primaryCorrelation(item) {

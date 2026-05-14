@@ -1,8 +1,8 @@
-"""Centralized configuration helpers for Cortex runtime.
+"""Centralized configuration helpers for Heron runtime.
 
-The cortex mode helpers raise ``ValueError`` when the config is malformed and
+The heron mode helpers raise ``ValueError`` when the config is malformed and
 ``FileNotFoundError`` when the file is missing and automatic creation is
-disabled. Callers such as :func:`ensure_valid_cortex_mode` must be prepared to
+disabled. Callers such as :func:`ensure_valid_heron_mode` must be prepared to
 surface or handle these exceptions during service bootstrap.
 """
 
@@ -46,12 +46,12 @@ def get_sys_path() -> str:
 
 
 SETTINGS_PATH = os.path.join(get_sys_path(), "config", "settings.json")
-MODE_CONFIG_ENV_VAR = "CORTEX_MODE_CONFIG_PATH"
-MODE_CONFIG_NAME = "cortex_mode.json"
+MODE_CONFIG_ENV_VAR = "HERON_MODE_CONFIG_PATH"
+MODE_CONFIG_NAME = "heron_mode.json"
 _MODE_DEFAULT: Dict[str, Any] = {"mode": {"active": True, "passive": False}}
 _MODE_CACHE: Optional[Dict[str, bool]] = None
 _MODE_LOCK = threading.Lock()
-MODE_AUTO_CREATE_ENV = "CORTEX_MODE_AUTO_CREATE"
+MODE_AUTO_CREATE_ENV = "HERON_MODE_AUTO_CREATE"
 DEFAULT_INTERVAL_MINUTES = 5
 DEFAULT_LABELS = {"during_processing": "processing", "after_processing": "processed"}
 DEFAULT_LOG_LEVEL = "info"
@@ -95,7 +95,7 @@ _DEFAULTS: Dict[str, Any] = {
     # Telemetry defaults: disabled by default
  "telemetry": {
         "enabled": False,
-        "namespace": "cortex",
+        "namespace": "heron",
         "region": "us-ashburn-1",
         "account_id": "",
         "resource_group": "",
@@ -106,7 +106,7 @@ _DEFAULTS: Dict[str, Any] = {
         "circuit_breaker": {
             "enabled": False,
             "max_tickets_per_run": None,
-            "rollup_label": "cortex_rollup",
+            "rollup_label": "heron_rollup",
         }
     },
     "processing": {
@@ -231,12 +231,12 @@ def _load_mode_config(refresh: bool = False) -> Dict[str, bool]:
                 with open(path, "r", encoding="utf-8") as fh:
                     data = json.load(fh) or {}
             except Exception as exc:
-                raise ValueError(f"Failed to load cortex mode config at {path}: {exc}") from exc
+                raise ValueError(f"Failed to load heron mode config at {path}: {exc}") from exc
         else:
             allow_create = os.getenv(MODE_AUTO_CREATE_ENV, "true").lower() in ("1", "true", "yes", "on")
             if not allow_create:
                 raise FileNotFoundError(
-                    f"Cortex mode config missing at {path}. Set {MODE_AUTO_CREATE_ENV}=true to auto-create defaults"
+                    f"Heron mode config missing at {path}. Set {MODE_AUTO_CREATE_ENV}=true to auto-create defaults"
                 )
 
             directory = os.path.dirname(path)
@@ -248,50 +248,50 @@ def _load_mode_config(refresh: bool = False) -> Dict[str, bool]:
 
         mode_section = data.get("mode") if isinstance(data, dict) else None
         if not isinstance(mode_section, dict):
-            raise ValueError(f"Invalid cortex mode config structure in {path}; expected 'mode' object")
+            raise ValueError(f"Invalid heron mode config structure in {path}; expected 'mode' object")
 
         active = bool(mode_section.get("active"))
         passive = bool(mode_section.get("passive"))
         if active == passive:
             raise ValueError(
-                f"Invalid cortex mode config at {path}: exactly one of mode.active/mode.passive must be true"
+                f"Invalid heron mode config at {path}: exactly one of mode.active/mode.passive must be true"
             )
 
         _MODE_CACHE = {"active": active, "passive": passive}
         return _MODE_CACHE.copy()
 
 
-def get_cortex_mode(refresh: bool = False) -> Dict[str, bool]:
-    """Gets cortex mode using local state or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
+def get_heron_mode(refresh: bool = False) -> Dict[str, bool]:
+    """Gets heron mode using local state or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
     return _load_mode_config(refresh).copy()
 
 
-def get_cortex_mode_flags(refresh: bool = False) -> Tuple[bool, bool]:
-    """Gets cortex mode flags using local state or integration calls and returns a tuple result (e.g., ()), may raise ValueError for bad input while dependency errors may bubble."""
+def get_heron_mode_flags(refresh: bool = False) -> Tuple[bool, bool]:
+    """Gets heron mode flags using local state or integration calls and returns a tuple result (e.g., ()), may raise ValueError for bad input while dependency errors may bubble."""
     mode = _load_mode_config(refresh)
     return mode["active"], mode["passive"]
 
 
-def refresh_cortex_mode_config() -> Dict[str, bool]:
-    """Builds refresh cortex mode config using local state or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
-    return get_cortex_mode(refresh=True)
+def refresh_heron_mode_config() -> Dict[str, bool]:
+    """Builds refresh heron mode config using local state or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
+    return get_heron_mode(refresh=True)
 
 
 def is_active_mode() -> bool:
     """Checks active mode using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-    active, _ = get_cortex_mode_flags()
+    active, _ = get_heron_mode_flags()
     return active
 
 
 def is_passive_mode() -> bool:
     """Checks passive mode using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-    _, passive = get_cortex_mode_flags()
+    _, passive = get_heron_mode_flags()
     return passive
 
 
-def ensure_valid_cortex_mode() -> None:
-    """Ensures valid cortex mode using local state or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
-    get_cortex_mode()
+def ensure_valid_heron_mode() -> None:
+    """Ensures valid heron mode using local state or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
+    get_heron_mode()
 
 
 def _load_settings() -> Dict[str, Any]:

@@ -22,6 +22,6 @@
     --index-strategy unsafe-best-match \
     aoadevtools
   ```
-- **Enable AI**: Set `CORTEX_DISABLE_AI=0` in `.env`, ensure the ADK is installed, and restart Cortex. If you still see `No module named 'aws.addons'`, the toolkit is missing from the venv.
+- **Enable AI**: Set `HERON_DISABLE_AI=0` in `.env`, ensure the ADK is installed, and restart Heron. If you still see `No module named 'aws.addons'`, the toolkit is missing from the venv.
 - **Networking**: Jira, object storage, and GenAI endpoints require Amazon VPN/corporate network resolution. Stay on VPN to avoid `NameResolutionError`.
-- **Passive logs & uploads**: `config/logging_mode.json` writes to `./data/logs/cortex_activity.log`; create the directory before running. Object storage uploads execute every minute when `upload_schedule.enabled=true`.
+- **Passive logs & uploads**: `config/logging_mode.json` writes to `./data/logs/heron_activity.log`; create the directory before running. Object storage uploads execute every minute when `upload_schedule.enabled=true`.

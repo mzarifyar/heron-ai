@@ -193,7 +193,7 @@ function TicketsTab() {
         {isLoading ? (
           <SkeletonTable rows={8} />
         ) : !data?.items.length ? (
-          <EmptyState icon={TicketIcon} title="No incidents ingested" description="Incidents appear here once Cortex starts processing signals." />
+          <EmptyState icon={TicketIcon} title="No incidents ingested" description="Incidents appear here once Heron starts processing signals." />
         ) : (
           <>
             <Table>

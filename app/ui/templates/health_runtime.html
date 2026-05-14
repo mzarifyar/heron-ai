@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Health Runtime{% endblock %}
-{% block header_title %}Cortex Health Runtime{% endblock %}
+{% block title %}Heron Health Runtime{% endblock %}
+{% block header_title %}Heron Health Runtime{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -26,7 +26,7 @@
     </div>
   </div>
   <script>
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
 
     async function refreshRuntime() {
       const [healthz, readyz, runtime] = await Promise.all([

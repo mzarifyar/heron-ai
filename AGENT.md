@@ -1,12 +1,12 @@
 Working agreement for humans and coding agents in this repository.
 
-Repo domain: Cortex-AI reliability platform (incident-response loop, safety guardrails, explainability, and Chronicle learning surfaces).
+Repo domain: Heron reliability platform (incident-response loop, safety guardrails, explainability, and Chronicle learning surfaces).
 
 ------------------------------------------------------------
 1) Primary Goal
 ------------------------------------------------------------
 
-Make safe, correct, testable changes that improve Cortex behavior and operator/developer usability while preserving trust, auditability, and policy constraints.
+Make safe, correct, testable changes that improve Heron behavior and operator/developer usability while preserving trust, auditability, and policy constraints.
 
 Default priority order:
 1. correctness and safety

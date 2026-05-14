@@ -1,6 +1,6 @@
-"""Demo mode — generates synthetic incidents so Cortex can be evaluated without real infrastructure.
+"""Demo mode — generates synthetic incidents so Heron can be evaluated without real infrastructure.
 
-Enable with CORTEX_DEMO_MODE=true (or --demo flag). A background thread injects a rotating
+Enable with HERON_DEMO_MODE=true (or --demo flag). A background thread injects a rotating
 set of realistic-looking signals every 30 seconds, driving the full closed loop:
 Sense → Insight → Core → Reflex → Verify → Escalate → Chronicle.
 """
@@ -95,7 +95,7 @@ def _make_signal(service: str, tier: str, env: str, region: str) -> SignalIngest
 
 
 class DemoRunner:
-    """Injects synthetic signals on a background thread when CORTEX_DEMO_MODE=true."""
+    """Injects synthetic signals on a background thread when HERON_DEMO_MODE=true."""
 
     def __init__(self) -> None:
         self._thread: threading.Thread | None = None
@@ -105,7 +105,7 @@ class DemoRunner:
         settings = get_settings()
         if not settings.demo_mode:
             return
-        logger.info("CORTEX_DEMO_MODE=true — starting synthetic incident generator")
+        logger.info("HERON_DEMO_MODE=true — starting synthetic incident generator")
         self._stop.clear()
         self._thread = threading.Thread(target=self._loop, name="demo-runner", daemon=True)
         self._thread.start()

@@ -1,13 +1,13 @@
-# Cortex-AI Autonomous Alert Handling Spec (Working Note)
+# Heron Autonomous Alert Handling Spec (Working Note)
 
 Date: 2026-04-22 (America/Los_Angeles)  
-Status: Draft working requirements for implementation in `cortex-AI`
+Status: Draft working requirements for implementation in `heron-AI`
 
 ## 1) Mission
 
-Implement complete Jira alert handling in Cortex-AI so incoming alert tickets can be:
+Implement complete Jira alert handling in Heron so incoming alert tickets can be:
 
-1. Claimed and tracked by Cortex-AI.
+1. Claimed and tracked by Heron.
 2. Parsed into structured incident context.
 3. Mapped to the correct mitigation playbook.
 4. Executed and verified automatically when safe.
@@ -17,7 +17,7 @@ Implement complete Jira alert handling in Cortex-AI so incoming alert tickets ca
 
 Primary references to inspect and mine:
 
-- Existing implementation patterns: `~/code/cortex`
+- Existing implementation patterns: `~/code/heron`
 - Runbooks source of truth: `$USER/code/oda-runbooks`
 - Alarm definitions (initial scope):  
   `$USER/code/bots-terraform/shepherd/shared_modules/t2/alarms`
@@ -65,7 +65,7 @@ Description parsing must extract:
 
 ## 4) Jira Lifecycle State Machine
 
-Expected state progression for Cortex-owned incidents:
+Expected state progression for Heron-owned incidents:
 
 1. `new` -> `claimed`
 2. `claimed` -> `in_progress`
@@ -75,7 +75,7 @@ Expected state progression for Cortex-owned incidents:
 
 Mandatory Jira actions at claim/start:
 
-- Add processing label (example `cortex-ai-processing`).
+- Add processing label (example `heron-processing`).
 - Add audit note/comment with correlation IDs.
 - Transition issue to `In Progress`.
 
@@ -168,7 +168,7 @@ If no runbook exists:
 
 ## 7) Mitigation Execution and Verification Expectations
 
-Cortex-AI should attempt to diagnose and recover at the right layer:
+Heron should attempt to diagnose and recover at the right layer:
 
 - Service level
 - Pod level
@@ -195,7 +195,7 @@ Escalation payload schema (minimum):
 
 ```yaml
 schema_version: "1.0"
-escalation_type: "cortex_auto_escalation_sev4"
+escalation_type: "heron_auto_escalation_sev4"
 original_ticket:
   key: "CDA-12345"
   url: "https://jira.../browse/CDA-12345"
@@ -238,7 +238,7 @@ Linking requirements:
 
 ## 9) Housekeeping + Alert Handling Convergence
 
-Housekeeping checks already being added to Cortex-AI should feed alert handling:
+Housekeeping checks already being added to Heron should feed alert handling:
 
 - Cluster inventory and health snapshots can be reused during active mitigation.
 - Bad pod diagnostics and event tails should attach to Jira comments/escalation context.
@@ -351,7 +351,7 @@ Trajectory note:
 ### 2026-04-22 - Next Active Step
 
 - IN PROGRESS: Build prioritized remediation queue for `ref_path_missing` and `no_runbook_ref` (top families first: `cda_proposed_action_model_qualitative`, `watchdog`, `cda_model`, `k8s`).
-- PENDING: Propose first batch of canonical runbook IDs + mapping records for implementation in Cortex-AI mitigation resolver.
+- PENDING: Propose first batch of canonical runbook IDs + mapping records for implementation in Heron mitigation resolver.
 
 ### 2026-04-22 - Progress Update
 
@@ -426,7 +426,7 @@ Trajectory note:
 Trajectory note:
 
 - Resolver is now deterministic and non-destructive as requested.
-- Next trajectory is execution planning integration: map `runbook_id` -> safe diagnostic action plan so Cortex can start automated triage without taking ticket-mutating remediation actions.
+- Next trajectory is execution planning integration: map `runbook_id` -> safe diagnostic action plan so Heron can start automated triage without taking ticket-mutating remediation actions.
 
 ### 2026-04-22 - Next Active Step
 
@@ -459,7 +459,7 @@ Trajectory note:
 
 Trajectory note:
 
-- Cortex now deterministically resolves `runbook_id` and presents a safe diagnostics plan per ticket in UI.
+- Heron now deterministically resolves `runbook_id` and presents a safe diagnostics plan per ticket in UI.
 - Next step is to add an explicit feature flag and execution pipeline for converting `diagnostics_preview` into automated command runs with guardrails and full audit trail.
 
 ### 2026-04-23 - Step 1 (Diagnostics Runner)
@@ -476,11 +476,11 @@ Trajectory note:
 ### 2026-04-23 - Step 2 (Feature Flags + Safety Gates)
 
 - DONE: Added execution/mutation safety flags in Jira ingestion:
-  - `CORTEX_JIRA_MUTATIONS_ENABLED` (default `false`)
-  - `CORTEX_DIAGNOSTICS_EXECUTE` (default `false`)
-  - `CORTEX_DIAGNOSTICS_DRY_RUN` (default `true`)
-  - `CORTEX_DIAGNOSTICS_TIMEOUT_SECONDS` (bounded 5-300)
-  - `CORTEX_DIAGNOSTICS_RETRIES` (bounded 0-3)
+  - `HERON_JIRA_MUTATIONS_ENABLED` (default `false`)
+  - `HERON_DIAGNOSTICS_EXECUTE` (default `false`)
+  - `HERON_DIAGNOSTICS_DRY_RUN` (default `true`)
+  - `HERON_DIAGNOSTICS_TIMEOUT_SECONDS` (bounded 5-300)
+  - `HERON_DIAGNOSTICS_RETRIES` (bounded 0-3)
 - DONE: Wired optional diagnostics execution into ingestion summary/enrichment:
   - new summary fields: `diagnostics_executed`, `diagnostics_execute_failures`, gate state fields.
   - new enrichment field when enabled: `diagnostics_execution`.
@@ -500,7 +500,7 @@ Trajectory note:
   - start comment + transition to `In Progress`
   - completion comment after diagnostics stage
   - summary counters/errors for lifecycle operations
-  - gate: `CORTEX_JIRA_LIFECYCLE_ENABLED` (requires `CORTEX_JIRA_MUTATIONS_ENABLED=true`)
+  - gate: `HERON_JIRA_LIFECYCLE_ENABLED` (requires `HERON_JIRA_MUTATIONS_ENABLED=true`)
 - DONE: Added tests:
   - `tests/test_jira_processor_ticket_lifecycle.py`
 - DONE: Validation run:
@@ -521,7 +521,7 @@ Trajectory note:
   - `verification_resolved`
   - `verification_partially_resolved`
   - `verification_unresolved`
-  - gate: `CORTEX_VERIFICATION_ENABLED` (default true)
+  - gate: `HERON_VERIFICATION_ENABLED` (default true)
 - DONE: Validation run:
   - `.venv/bin/pytest -q tests/test_jira_processor_enrichment.py tests/test_jira_processor_diagnostics_execution_flags.py tests/test_jira_processor_ticket_lifecycle.py tests/test_jira_processor_label_mutation_toggle.py`
   - Result: `4 passed`.
@@ -530,7 +530,7 @@ Trajectory note:
 
 - DONE: Added unresolved auto-escalation flow (feature-flagged):
   - `app/services/jira_processor.py`
-  - gate: `CORTEX_SEV4_ESCALATION_ENABLED` (requires `CORTEX_JIRA_MUTATIONS_ENABLED=true`)
+  - gate: `HERON_SEV4_ESCALATION_ENABLED` (requires `HERON_JIRA_MUTATIONS_ENABLED=true`)
   - creates escalation issue via Jira API
   - posts linking comments on source and escalation tickets
   - stores structured result in `enrichment.escalation`
@@ -575,7 +575,7 @@ Trajectory note:
 - DONE: Persist diagnostics execution artifacts into local DB:
   - added `diagnostics_runs` and `diagnostics_steps` tables in `app/store/local_db.py`,
   - wired persistence from `app/services/jira_processor.py`.
-- DONE: Migrated oda-runbooks into Cortex-AI local catalog:
+- DONE: Migrated oda-runbooks into Heron local catalog:
   - added `scripts/migrate_oda_runbooks.py`,
   - imported 441 markdown runbooks into `mitigations/runbooks/oda`,
   - generated 441 metadata files in `mitigations/metadata/oda`,
@@ -615,7 +615,7 @@ Phase 5: Hardening
 
 ## 12) Acceptance Criteria (Initial)
 
-1. Cortex-AI can claim a new alert ticket and set it `In Progress`.
+1. Heron can claim a new alert ticket and set it `In Progress`.
 2. Parsed context fields are extracted correctly from title/description.
 3. Alarm title maps to runbook and mitigation plan.
 4. Mitigation execution is auditable and deterministic.
@@ -628,4 +628,4 @@ Phase 5: Hardening
 
 For behavior and implementation details to audit/import:
 
-- `~/code/cortex`
+- `~/code/heron`

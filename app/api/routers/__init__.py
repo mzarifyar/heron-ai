@@ -1,4 +1,4 @@
-"""FastAPI routers exposed by Cortex-AI.
+"""FastAPI routers exposed by Heron.
 
 """
 

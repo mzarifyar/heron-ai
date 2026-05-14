@@ -14,10 +14,10 @@
     const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     const isOpsWrite = String(url || "").startsWith("/api/v1/ops/") && !["GET", "HEAD", "OPTIONS"].includes(method);
     if (isLocalHost && isOpsWrite) {
-      const role = (window.localStorage && window.localStorage.getItem("cortex-role")) || "admin";
+      const role = (window.localStorage && window.localStorage.getItem("heron-role")) || "admin";
       const headers = new Headers(opts.headers || {});
-      if (!headers.has("x-cortex-role")) {
-        headers.set("x-cortex-role", role);
+      if (!headers.has("x-heron-role")) {
+        headers.set("x-heron-role", role);
       }
       opts.headers = headers;
     }
@@ -89,7 +89,7 @@
     }
   }
 
-  window.CortexUI = {
+  window.HeronUI = {
     escapeHtml,
     getJson,
     renderKeyValueRows,

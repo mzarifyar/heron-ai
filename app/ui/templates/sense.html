@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Sense UI{% endblock %}
-{% block header_title %}Cortex Sense{% endblock %}
+{% block title %}Heron Sense UI{% endblock %}
+{% block header_title %}Heron Sense{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -55,7 +55,7 @@
   <script>
     const listUrl = "{{ list_url }}";
     const ingestUrl = "{{ ingest_url }}";
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
     let selectedSignal = null;
 
     function currentFormPayload() {

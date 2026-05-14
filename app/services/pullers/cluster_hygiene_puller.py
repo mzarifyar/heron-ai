@@ -97,11 +97,11 @@ class ClusterHygienePuller:
 
     def _load_targets(self) -> List[Dict[str, Any]]:
         """Loads targets using local reads or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
-        env_targets = (os.getenv("CORTEX_CLUSTER_TARGETS") or "").strip()
+        env_targets = (os.getenv("HERON_CLUSTER_TARGETS") or "").strip()
         if env_targets:
             payload = json.loads(env_targets)
         else:
-            path = Path((os.getenv("CORTEX_CLUSTER_TARGETS_PATH") or DEFAULT_CLUSTER_TARGETS_PATH).strip())
+            path = Path((os.getenv("HERON_CLUSTER_TARGETS_PATH") or DEFAULT_CLUSTER_TARGETS_PATH).strip())
             if not path.exists():
                 return []
             payload = json.loads(path.read_text(encoding="utf-8"))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cortex synthetic data seeder.
+Heron synthetic data seeder.
 
 Populates the database with rich, realistic incident data so every dashboard
 widget, chart, and table looks like a live production system.
@@ -309,26 +309,26 @@ def make_timeline_auto_healed(inc: Incident, spec: dict) -> list[dict]:
     dur = inc.duration_seconds or 420
 
     events = [
-        {"dt": t,                       "type": "anomaly.detected",   "actor": "cortex",  "sev": "warning",
+        {"dt": t,                       "type": "anomaly.detected",   "actor": "heron",  "sev": "warning",
          "desc": f"Anomaly detected: {metric}={observed} exceeds threshold {threshold} on {svc} ({region}).",
          "meta": {"metric": metric, "value": observed, "threshold": threshold}},
-        {"dt": t + timedelta(seconds=15),"type": "insight.analyzed",  "actor": "cortex",  "sev": "info",
-         "desc": f"Cortex Insight: pattern matched — transient {metric} spike on {svc}. Similar pattern resolved via pod restart in previous 8 incidents.",
+        {"dt": t + timedelta(seconds=15),"type": "insight.analyzed",  "actor": "heron",  "sev": "info",
+         "desc": f"Heron Insight: pattern matched — transient {metric} spike on {svc}. Similar pattern resolved via pod restart in previous 8 incidents.",
          "meta": {"confidence": round(rng.uniform(0.80, 0.96), 2), "similar_incidents": rng.randint(5, 12)}},
-        {"dt": t + timedelta(seconds=28),"type": "decision.created",  "actor": "cortex",  "sev": "info",
+        {"dt": t + timedelta(seconds=28),"type": "decision.created",  "actor": "heron",  "sev": "info",
          "desc": f"Decision: auto-mitigation approved — pod restart recommended (policy: sev{spec['severity'][-1]}-auto-heal).",
          "meta": {"action": "pod_restart", "policy": f"sev{spec['severity'][-1]}-auto-heal"}},
-        {"dt": t + timedelta(seconds=35),"type": "action.executed",   "actor": "cortex",  "sev": "info",
+        {"dt": t + timedelta(seconds=35),"type": "action.executed",   "actor": "heron",  "sev": "info",
          "desc": f"Action executed: {action_cmd}",
          "meta": {"command": action_cmd, "namespace": "prod"}},
-        {"dt": t + timedelta(seconds=dur - 90), "type": "verify.checking", "actor": "cortex", "sev": "info",
+        {"dt": t + timedelta(seconds=dur - 90), "type": "verify.checking", "actor": "heron", "sev": "info",
          "desc": f"Verification: monitoring {metric} post-restart. Current: {rng.choice(['trending down', 'stabilising'])}.",
          "meta": {"checks": 3, "interval_seconds": 30}},
-        {"dt": t + timedelta(seconds=dur - 15), "type": "verify.passed",   "actor": "cortex", "sev": "info",
+        {"dt": t + timedelta(seconds=dur - 15), "type": "verify.passed",   "actor": "heron", "sev": "info",
          "desc": f"Verification passed: {metric} returned to {baseline} — within baseline. SLO impact: minimal.",
          "meta": {"metric": metric, "restored_value": baseline}},
-        {"dt": t + timedelta(seconds=dur),      "type": "incident.resolved","actor": "cortex","sev": "info",
-         "desc": f"Incident auto-resolved by Cortex after {dur // 60}m {dur % 60}s. No human intervention required.",
+        {"dt": t + timedelta(seconds=dur),      "type": "incident.resolved","actor": "heron","sev": "info",
+         "desc": f"Incident auto-resolved by Heron after {dur // 60}m {dur % 60}s. No human intervention required.",
          "meta": {"resolution_type": "auto_healed", "duration_seconds": dur}},
     ]
     return events
@@ -341,16 +341,16 @@ def make_timeline_manual(inc: Incident, spec: dict) -> list[dict]:
     dur = inc.duration_seconds or 3600
 
     events = [
-        {"dt": t,                           "type": "anomaly.detected",    "actor": "cortex",   "sev": "critical",
+        {"dt": t,                           "type": "anomaly.detected",    "actor": "heron",   "sev": "critical",
          "desc": f"Critical anomaly on {svc} ({region}) — degraded state detected across multiple metrics.",
          "meta": {"service": svc}},
-        {"dt": t + timedelta(seconds=20),   "type": "insight.analyzed",    "actor": "cortex",   "sev": "info",
-         "desc": f"Cortex Insight: no high-confidence automated remediation available. Escalating to on-call.",
+        {"dt": t + timedelta(seconds=20),   "type": "insight.analyzed",    "actor": "heron",   "sev": "info",
+         "desc": f"Heron Insight: no high-confidence automated remediation available. Escalating to on-call.",
          "meta": {"confidence": round(rng.uniform(0.40, 0.65), 2)}},
-        {"dt": t + timedelta(seconds=35),   "type": "escalation.pagerduty","actor": "cortex",   "sev": "warning",
+        {"dt": t + timedelta(seconds=35),   "type": "escalation.pagerduty","actor": "heron",   "sev": "warning",
          "desc": f"On-call engineer paged via PagerDuty — incident {inc.id[:8]} (sev{spec['severity'][-1]}).",
          "meta": {"channel": "pagerduty", "policy": "on-call-rotation"}},
-        {"dt": t + timedelta(seconds=40),   "type": "escalation.slack",    "actor": "cortex",   "sev": "info",
+        {"dt": t + timedelta(seconds=40),   "type": "escalation.slack",    "actor": "heron",   "sev": "info",
          "desc": f"Alert posted to #incidents-prod with runbook link. Severity: {spec['severity']}.",
          "meta": {"channel": "#incidents-prod", "runbook": f"https://runbooks.internal/{svc}/troubleshoot"}},
         {"dt": t + timedelta(seconds=210),  "type": "human.acknowledged",  "actor": "human",    "sev": "info",
@@ -371,23 +371,23 @@ def make_timeline_escalated(inc: Incident, spec: dict) -> list[dict]:
     t = inc.started_at
 
     events = [
-        {"dt": t,                          "type": "anomaly.detected",    "actor": "cortex", "sev": "critical",
+        {"dt": t,                          "type": "anomaly.detected",    "actor": "heron", "sev": "critical",
          "desc": f"Multi-metric anomaly on {svc} — sustained degradation exceeds auto-heal confidence threshold.",
          "meta": {"service": svc}},
-        {"dt": t + timedelta(seconds=18),  "type": "insight.analyzed",    "actor": "cortex", "sev": "info",
+        {"dt": t + timedelta(seconds=18),  "type": "insight.analyzed",    "actor": "heron", "sev": "info",
          "desc": "Insight: pattern partially matched but confidence below 70% — human oversight required.",
          "meta": {"confidence": round(rng.uniform(0.45, 0.68), 2)}},
-        {"dt": t + timedelta(seconds=30),  "type": "decision.created",    "actor": "cortex", "sev": "warning",
+        {"dt": t + timedelta(seconds=30),  "type": "decision.created",    "actor": "heron", "sev": "warning",
          "desc": "Decision: attempting limited auto-mitigation then escalating regardless of outcome.",
          "meta": {"action": "pod_restart", "escalate_after": True}},
-        {"dt": t + timedelta(seconds=45),  "type": "action.executed",     "actor": "cortex", "sev": "info",
+        {"dt": t + timedelta(seconds=45),  "type": "action.executed",     "actor": "heron", "sev": "info",
          "desc": f"Action executed: kubectl rollout restart deployment/{svc}",
          "meta": {}},
-        {"dt": t + timedelta(seconds=180), "type": "verify.failed",       "actor": "cortex", "sev": "warning",
+        {"dt": t + timedelta(seconds=180), "type": "verify.failed",       "actor": "heron", "sev": "warning",
          "desc": f"{svc} still degraded after restart. Escalating to on-call.",
          "meta": {"attempt": 1, "outcome": "degraded_persists"}},
-        {"dt": t + timedelta(seconds=195), "type": "escalation.pagerduty","actor": "cortex", "sev": "critical",
-         "desc": "Escalated: on-call paged. Cortex handing off to human responder.",
+        {"dt": t + timedelta(seconds=195), "type": "escalation.pagerduty","actor": "heron", "sev": "critical",
+         "desc": "Escalated: on-call paged. Heron handing off to human responder.",
          "meta": {"channel": "pagerduty"}},
         {"dt": t + timedelta(minutes=12),  "type": "human.acknowledged",  "actor": "human",  "sev": "info",
          "desc": "On-call engineer acknowledged. Investigating root cause.",
@@ -401,14 +401,14 @@ def make_timeline_active(inc: Incident, spec: dict) -> list[dict]:
     t = inc.started_at
 
     events = [
-        {"dt": t,                          "type": "anomaly.detected",    "actor": "cortex", "sev": "critical",
+        {"dt": t,                          "type": "anomaly.detected",    "actor": "heron", "sev": "critical",
          "desc": f"Anomaly detected on {svc} — conditions for auto-heal not met.",
          "meta": {"service": svc}},
-        {"dt": t + timedelta(seconds=22),  "type": "insight.analyzed",    "actor": "cortex", "sev": "info",
+        {"dt": t + timedelta(seconds=22),  "type": "insight.analyzed",    "actor": "heron", "sev": "info",
          "desc": "Insight: novel pattern — no historical match above 60% confidence. Escalating to on-call.",
          "meta": {"confidence": round(rng.uniform(0.35, 0.59), 2)}},
-        {"dt": t + timedelta(seconds=40),  "type": "escalation.pagerduty","actor": "cortex", "sev": "warning",
-         "desc": "On-call paged. Cortex continuing to monitor and collect telemetry.",
+        {"dt": t + timedelta(seconds=40),  "type": "escalation.pagerduty","actor": "heron", "sev": "warning",
+         "desc": "On-call paged. Heron continuing to monitor and collect telemetry.",
          "meta": {"monitoring": True}},
         {"dt": t + timedelta(minutes=8),   "type": "human.acknowledged",  "actor": "human",  "sev": "info",
          "desc": "On-call acknowledged. Active investigation in progress.",
@@ -436,12 +436,12 @@ def make_timeline(inc: Incident, spec: dict) -> list[dict]:
 POSTMORTEM_TEMPLATES = {
     "seed-inc-001": ("alex.chen", """
 ## Summary
-A deployment of payment-processor v2.4.1 at 14:20 UTC introduced a regression in the error handling path, causing error rates to spike from 0.3% to 8.3% within 2 minutes. Cortex detected the anomaly, approved auto-mitigation, and executed a rollout restart that resolved the incident in 7 minutes with no SLO breach.
+A deployment of payment-processor v2.4.1 at 14:20 UTC introduced a regression in the error handling path, causing error rates to spike from 0.3% to 8.3% within 2 minutes. Heron detected the anomaly, approved auto-mitigation, and executed a rollout restart that resolved the incident in 7 minutes with no SLO breach.
 
 ## Timeline
 - **14:20 UTC** — payment-processor v2.4.1 deployed to prod-us-east-1
-- **14:22 UTC** — Error rate crosses 5% threshold; Cortex anomaly detection fires
-- **14:23 UTC** — Cortex executes rollout restart (confidence: 94%)
+- **14:22 UTC** — Error rate crosses 5% threshold; Heron anomaly detection fires
+- **14:23 UTC** — Heron executes rollout restart (confidence: 94%)
 - **14:29 UTC** — Error rate returns to 0.4%; incident auto-resolved
 
 ## Root Cause
@@ -455,7 +455,7 @@ A null-pointer dereference in the new retry logic in v2.4.1. The error occurred 
 - **SLO impact:** None — 99.95% availability maintained for the month
 
 ## What Went Well
-- Cortex detected the anomaly within 2 minutes of deployment
+- Heron detected the anomaly within 2 minutes of deployment
 - Auto-heal resolved the incident without human intervention
 - Rollback was clean and fast (no data corruption)
 
@@ -470,25 +470,25 @@ A null-pointer dereference in the new retry logic in v2.4.1. The error occurred 
 """),
     "seed-inc-002": ("sam.torres", """
 ## Summary
-A memory leak in the auth-service token validator caused progressive memory growth over 6 hours, resulting in OOM kills on 2 of 4 pods. Cortex detected the event, restarted the affected pods with connection draining, and resolved the incident in 12 minutes. Root cause: unclosed Redis connections in the JWT validation path.
+A memory leak in the auth-service token validator caused progressive memory growth over 6 hours, resulting in OOM kills on 2 of 4 pods. Heron detected the event, restarted the affected pods with connection draining, and resolved the incident in 12 minutes. Root cause: unclosed Redis connections in the JWT validation path.
 
 ## Timeline
 - **08:14 UTC** — auth-service memory begins gradual growth (normal churn: 512MB → climbing)
 - **09:30 UTC** — Memory at 1.8GB on pod auth-service-7c8d4-kp1n2; Redis connection count: 847
 - **10:48 UTC** — OOM kill on auth-service-7c8d4-kp1n2 (RSS 2.1GB)
-- **10:49 UTC** — Cortex detects memory anomaly pattern, approves pod restart with drain
+- **10:49 UTC** — Heron detects memory anomaly pattern, approves pod restart with drain
 - **11:01 UTC** — All pods restarted, memory stabilised at 612MB
 
 ## Root Cause
 The JWT validator introduced in v3.8.2 opens a Redis connection per validation call to check token revocation status, but does not properly return connections to the pool under error conditions. Under normal load, the leak is slow (~50 connections/hour). Under sustained traffic, it accelerates to OOM within 6 hours.
 
 ## Impact
-- **Duration:** 12 minutes (Cortex response time) + 6 hours latent leak
+- **Duration:** 12 minutes (Heron response time) + 6 hours latent leak
 - **Auth failures:** 0 — pod restart was staggered with connection draining
 - **User impact:** None detected — healthy pods served traffic during restart
 
 ## What Went Well
-- Cortex pattern-matched the OOM signature from a previous incident and executed drain-first restart
+- Heron pattern-matched the OOM signature from a previous incident and executed drain-first restart
 - Zero user-facing auth failures despite pod OOM
 - Heap dump automatically captured and attached to Jira ticket
 
@@ -508,7 +508,7 @@ A consumer group crash in notification-service caused queue depth to grow to 73,
 ## Timeline
 - **23:48 UTC** — Redis memory utilization crosses 85% on shared-cache-prod-1
 - **00:12 UTC** — notification-service consumer group pauses (Redis ENOMEM on message acknowledgement)
-- **02:14 UTC** — Queue depth reaches 50k threshold; Cortex pages on-call via PagerDuty
+- **02:14 UTC** — Queue depth reaches 50k threshold; Heron pages on-call via PagerDuty
 - **02:28 UTC** — On-call engineer acknowledges
 - **03:15 UTC** — Redis cluster scaled from 3→5 nodes; consumers restarted
 - **05:47 UTC** — Backlog cleared; all notifications delivered
@@ -539,12 +539,12 @@ Redis memory exhaustion due to unbounded TTL-less cache keys set by a recent rel
 """),
     "seed-inc-008": ("jen.wu", """
 ## Summary
-A transient network partition caused user-profile pods to fail health checks and return 503s intermittently. Cortex detected the degraded state within 60 seconds, executed a rolling restart with traffic draining, and restored service in 9 minutes.
+A transient network partition caused user-profile pods to fail health checks and return 503s intermittently. Heron detected the degraded state within 60 seconds, executed a rolling restart with traffic draining, and restored service in 9 minutes.
 
 ## Timeline
 - **16:32 UTC** — Network partition event on subnet prod-us-east-1-priv-1a (AWS AZ issue)
 - **16:33 UTC** — user-profile health check failure rate spikes to 34%
-- **16:34 UTC** — Cortex detects 503 pattern; initiates rolling restart
+- **16:34 UTC** — Heron detects 503 pattern; initiates rolling restart
 - **16:43 UTC** — All pods healthy; 503 rate returns to 0%
 
 ## Root Cause
@@ -569,13 +569,13 @@ AWS us-east-1 AZ degradation event affecting the private subnet. Pods lost conne
 """),
     "seed-inc-009": ("sam.torres", """
 ## Summary
-A surge in write traffic (3.2x baseline) exhausted the connection pool on inventory-service's PostgreSQL primary, causing write failures. Cortex detected the pool exhaustion pattern, scaled the service horizontally (+2 replicas), and restored normal operations in 14 minutes.
+A surge in write traffic (3.2x baseline) exhausted the connection pool on inventory-service's PostgreSQL primary, causing write failures. Heron detected the pool exhaustion pattern, scaled the service horizontally (+2 replicas), and restored normal operations in 14 minutes.
 
 ## Timeline
 - **11:02 UTC** — Flash sale campaign launches; write traffic spikes to 3.2x baseline
 - **11:04 UTC** — Connection pool at 98%; writes begin failing (JDBC pool timeout)
-- **11:05 UTC** — Cortex detects connection pool exhaustion signature
-- **11:06 UTC** — Cortex scales inventory-service to 5 replicas (from 3)
+- **11:05 UTC** — Heron detects connection pool exhaustion signature
+- **11:06 UTC** — Heron scales inventory-service to 5 replicas (from 3)
 - **11:19 UTC** — Pool utilization normalises at 45%; write failures cease
 
 ## Root Cause
@@ -587,7 +587,7 @@ The connection pool size was statically configured at 50 connections shared acro
 - **User impact:** ~800 orders showed stale inventory (all corrected within 10 minutes)
 
 ## What Went Well
-- Cortex auto-scaled without human intervention
+- Heron auto-scaled without human intervention
 - No orders were lost — failures were queued and replayed
 
 ## What Went Wrong
@@ -1026,11 +1026,11 @@ def _seed_golden_signals(db) -> None:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Seed Cortex synthetic data")
+    parser = argparse.ArgumentParser(description="Seed Heron synthetic data")
     parser.add_argument("--reset", action="store_true", help="Clear existing seeded data before inserting")
     args = parser.parse_args()
 
-    print("Cortex data seeder")
+    print("Heron data seeder")
     print("==================")
     print("Initialising database…")
     (ROOT / "data").mkdir(exist_ok=True)

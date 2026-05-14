@@ -1,4 +1,4 @@
-"""Action execution schemas for Cortex Reflex.
+"""Action execution schemas for Heron Reflex.
 
 """
 

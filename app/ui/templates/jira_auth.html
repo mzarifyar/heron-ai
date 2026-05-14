@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Cortex Jira Auth{% endblock %}
-{% block header_title %}Cortex Jira Auth{% endblock %}
+{% block title %}Heron Jira Auth{% endblock %}
+{% block header_title %}Heron Jira Auth{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <h3 class="section-title">Jira Browser Auth</h3>
     <p class="section-title">
-      Authenticate in Jira via browser, then paste your token once. Cortex-AI saves it locally and reuses it.
+      Authenticate in Jira via browser, then paste your token once. Heron saves it locally and reuses it.
     </p>
     <div class="row">
       <a href="{{ browser_auth_url }}" target="_blank" rel="noreferrer">Open Jira</a>
@@ -23,7 +23,7 @@
     </table>
   </div>
   <script>
-    const { runButtonAction } = window.CortexUI;
+    const { runButtonAction } = window.HeronUI;
 
     function renderStatus(payload) {
       const body = document.getElementById("status-body");

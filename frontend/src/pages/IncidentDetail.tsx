@@ -116,7 +116,7 @@ export default function IncidentDetail() {
         {dur && <span className="flex items-center gap-1"><Zap className="w-3 h-3" />{inc.auto_healed ? 'Auto-healed in' : 'Resolved in'} {dur}</span>}
         {inc.auto_healed && (
           <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
-            auto-healed by Cortex
+            auto-healed by Heron
           </span>
         )}
       </div>
@@ -141,7 +141,7 @@ export default function IncidentDetail() {
                     <EmptyState
                       icon={Clock}
                       title="No timeline events yet"
-                      description="Events will appear as Cortex processes this incident."
+                      description="Events will appear as Heron processes this incident."
                     />
                   ) : (
                     <div className="pl-2">

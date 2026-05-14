@@ -270,5 +270,5 @@ JIRA_PROJECT_KEY=OPS
 | `JIRA_BASE_URL` | For Jira | Your Jira REST API base URL |
 | `JIRA_BEARER_TOKEN` | For Jira | Personal access token |
 | `JIRA_PROJECT_KEY` | For Jira | Project key for new tickets |
-| `CORTEX_DEMO_MODE` | No | Set to `true` for synthetic incidents |
+| `HERON_DEMO_MODE` | No | Set to `true` for synthetic incidents |
 | `DATABASE_URL` | No (default: SQLite) | PostgreSQL connection string for production |

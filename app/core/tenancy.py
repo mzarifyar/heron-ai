@@ -1,11 +1,11 @@
 """Multi-tenancy utilities.
 
-Cortex uses a lightweight header-based org isolation model. Each inbound HTTP
+Heron uses a lightweight header-based org isolation model. Each inbound HTTP
 request may carry an ``X-Org-ID`` header that scopes all signals, incidents,
 and Chronicle data to a specific tenant.
 
 For single-tenant deployments the header is optional; everything defaults to
-``"default"``.  For multi-tenant deployments set ``CORTEX_REQUIRE_ORG_ID=true``
+``"default"``.  For multi-tenant deployments set ``HERON_REQUIRE_ORG_ID=true``
 to reject requests that omit the header.
 
 Usage in FastAPI route handlers::
@@ -30,13 +30,13 @@ DEFAULT_ORG_ID = "default"
 
 
 def _require_org_id() -> bool:
-    return os.getenv("CORTEX_REQUIRE_ORG_ID", "false").strip().lower() in {"1", "true", "yes", "on"}
+    return os.getenv("HERON_REQUIRE_ORG_ID", "false").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def get_org_id(request: Request) -> str:
     """Extract the tenant org_id from the X-Org-ID header.
 
-    Returns "default" when the header is absent and CORTEX_REQUIRE_ORG_ID is
+    Returns "default" when the header is absent and HERON_REQUIRE_ORG_ID is
     false.  Raises HTTP 400 when the header is required but missing.
     """
     org_id = (request.headers.get(ORG_ID_HEADER) or "").strip()

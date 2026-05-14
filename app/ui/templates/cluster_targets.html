@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Cluster Targets{% endblock %}
-{% block header_title %}Cortex Cluster Targets{% endblock %}
+{% block title %}Heron Cluster Targets{% endblock %}
+{% block header_title %}Heron Cluster Targets{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -18,7 +18,7 @@
     <div id="cluster-targets-status" class="small muted"></div>
   </div>
   <script>
-    const { getJson, runButtonAction } = window.CortexUI;
+    const { getJson, runButtonAction } = window.HeronUI;
     const contentEl = document.getElementById("cluster-targets-content");
     const statusEl = document.getElementById("cluster-targets-status");
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Chronicle{% endblock %}
-{% block header_title %}Cortex Chronicle{% endblock %}
+{% block title %}Heron Chronicle{% endblock %}
+{% block header_title %}Heron Chronicle{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -104,7 +104,7 @@
     const reportPrefix = "{{ report_url_prefix }}";
     const nearMissUrl = "{{ near_miss_url }}";
     const tagTrendsUrl = "{{ tag_trends_url }}";
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
     let selectedIncidentId = "";
 
     function renderIncidents(items) {

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Puller Targets{% endblock %}
-{% block header_title %}Cortex Puller Targets{% endblock %}
+{% block title %}Heron Puller Targets{% endblock %}
+{% block header_title %}Heron Puller Targets{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -17,7 +17,7 @@
     <table class="grid"><tbody id="targets-meta-body"></tbody></table>
   </div>
   <script>
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
     const editor = document.getElementById("targets-editor");
 
     async function loadTargets() {

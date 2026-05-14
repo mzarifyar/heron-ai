@@ -75,7 +75,7 @@ def chronicle_ui(request: Request) -> HTMLResponse:
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Cortex Chronicle UI</title>
+  <title>Heron Chronicle UI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root {{
@@ -116,14 +116,14 @@ def chronicle_ui(request: Request) -> HTMLResponse:
   <div class="container">
     <div class="row">
       <div class="grow">
-        <h2 style="margin: 0;">Cortex Chronicle</h2>
+        <h2 style="margin: 0;">Heron Chronicle</h2>
       </div>
     </div>
     <div class="panel stack" style="margin-top: 12px;">
       <div><span class="badge">Placeholder</span></div>
       <p style="margin: 0;">
         The production Chronicle experience will render incident timelines, decisions,
-        actions, and explainability artifacts surfaced by the Cortex platform.
+        actions, and explainability artifacts surfaced by the Heron platform.
         For now, this page keeps a lightweight placeholder while the real UI is developed.
       </p>
       <p style="margin: 0;">Refer to <span class="code">docs/chronicle-spec.md</span> for Chronicle design details.</p>
@@ -176,7 +176,7 @@ def mission_control_ui(request: Request) -> HTMLResponse:
         return templates.TemplateResponse("mission_control.html", context)
     return HTMLResponse(
         content=(
-            "<html><body><h3>Cortex Mission Control requires template support.</h3>"
+            "<html><body><h3>Heron Mission Control requires template support.</h3>"
             "<p>Open <a href='/camc'>/camc</a>, <a href='/chronicle'>/chronicle</a>, or <a href='/pullers'>/pullers</a>.</p></body></html>"
         )
     )

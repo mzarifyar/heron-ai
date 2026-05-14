@@ -1,6 +1,6 @@
 {
   "realm_auth": {
-    "generated_at_utc": "2026-05-14T08:13:15Z",
+    "generated_at_utc": "2026-05-14T08:50:47Z",
     "profiles": [
       {
         "realm": "AWS1",
@@ -8,21 +8,17 @@
         "ready": false,
         "status": "needs_interactive_login",
         "needs_interactive_login": true,
-        "last_checked_utc": "2026-05-14T08:13:14Z",
+        "last_checked_utc": "2026-05-14T08:50:47Z",
         "validate": {
           "ok": false,
           "valid": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choice",
-          "command": "aws --profile aws1.ssh session validate --local"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh": {
           "ok": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choices are:\n\naccessanalyzer                           | account                                 \nacm                                      | acm-pca                                 \naiops                                    | amp                                     \namplify                                 ",
-          "command": "aws --profile aws1.ssh session refresh"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh_attempted": true,
         "reauth_command": "aws session authenticate --profile-name aws1.ssh --account-name k8s_operator --auth kubeconfig"
@@ -33,21 +29,17 @@
         "ready": false,
         "status": "needs_interactive_login",
         "needs_interactive_login": true,
-        "last_checked_utc": "2026-05-14T08:13:14Z",
+        "last_checked_utc": "2026-05-14T08:50:47Z",
         "validate": {
           "ok": false,
           "valid": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choice",
-          "command": "aws --profile aws2.ssh session validate --local"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh": {
           "ok": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choices are:\n\naccessanalyzer                           | account                                 \nacm                                      | acm-pca                                 \naiops                                    | amp                                     \namplify                                 ",
-          "command": "aws --profile aws2.ssh session refresh"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh_attempted": true,
         "reauth_command": "aws session authenticate --profile-name aws2.ssh --account-name k8s_operator --auth kubeconfig"
@@ -58,21 +50,17 @@
         "ready": false,
         "status": "needs_interactive_login",
         "needs_interactive_login": true,
-        "last_checked_utc": "2026-05-14T08:13:14Z",
+        "last_checked_utc": "2026-05-14T08:50:47Z",
         "validate": {
           "ok": false,
           "valid": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choice",
-          "command": "aws --profile aws3.ssh session validate --local"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh": {
           "ok": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choices are:\n\naccessanalyzer                           | account                                 \nacm                                      | acm-pca                                 \naiops                                    | amp                                     \namplify                                 ",
-          "command": "aws --profile aws3.ssh session refresh"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh_attempted": true,
         "reauth_command": "aws session authenticate --profile-name aws3.ssh --account-name k8s_operator --auth kubeconfig"
@@ -83,21 +71,17 @@
         "ready": false,
         "status": "needs_interactive_login",
         "needs_interactive_login": true,
-        "last_checked_utc": "2026-05-14T08:13:14Z",
+        "last_checked_utc": "2026-05-14T08:50:47Z",
         "validate": {
           "ok": false,
           "valid": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choice",
-          "command": "aws --profile aws4.ssh session validate --local"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh": {
           "ok": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choices are:\n\naccessanalyzer                           | account                                 \nacm                                      | acm-pca                                 \naiops                                    | amp                                     \namplify                                 ",
-          "command": "aws --profile aws4.ssh session refresh"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh_attempted": true,
         "reauth_command": "aws session authenticate --profile-name aws4.ssh --account-name k8s_operator --auth kubeconfig"
@@ -108,21 +92,17 @@
         "ready": false,
         "status": "needs_interactive_login",
         "needs_interactive_login": true,
-        "last_checked_utc": "2026-05-14T08:13:15Z",
+        "last_checked_utc": "2026-05-14T08:50:47Z",
         "validate": {
           "ok": false,
           "valid": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choice",
-          "command": "aws --profile aws5.ssh session validate --local"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh": {
           "ok": false,
-          "code": 2,
-          "stdout": "",
-          "stderr": "usage: \nNote: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\naws: error: argument command: Invalid choice, valid choices are:\n\naccessanalyzer                           | account                                 \nacm                                      | acm-pca                                 \naiops                                    | amp                                     \namplify                                 ",
-          "command": "aws --profile aws5.ssh session refresh"
+          "code": -1,
+          "stderr": "aws_not_found"
         },
         "refresh_attempted": true,
         "reauth_command": "aws session authenticate --profile-name aws5.ssh --account-name k8s_operator --auth kubeconfig"

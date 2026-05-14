@@ -43,7 +43,7 @@
    HERON_AI_PROVIDER=anthropic
    HERON_AI_API_KEY=sk-ant-...
    SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
-   CORTEX_ENV=prod
+   HERON_ENV=prod
    ```
 
 ## Notes

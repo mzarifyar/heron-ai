@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Learn Console{% endblock %}
-{% block header_title %}Cortex Learn Console{% endblock %}
+{% block title %}Heron Learn Console{% endblock %}
+{% block header_title %}Heron Learn Console{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -65,7 +65,7 @@
     </div>
   </div>
   <script>
-    const { getJson, renderKeyValueRows, runButtonAction, escapeHtml } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction, escapeHtml } = window.HeronUI;
 
     function renderRows(targetId, items, scoped) {
       const body = document.getElementById(targetId);

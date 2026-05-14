@@ -1,4 +1,4 @@
-"""Telemetry helpers for consistently labeled Cortex metrics."""
+"""Telemetry helpers for consistently labeled Heron metrics."""
 from __future__ import annotations
 
 from typing import Optional
@@ -19,7 +19,7 @@ def _bool(value: bool) -> str:
 def emit_alarm_processed(mode: str, path: str, matched: bool) -> None:
     """Emits alarm processed using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_alarm_processed_count",
+        "heron_alarm_processed_count",
         1,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -31,7 +31,7 @@ def emit_alarm_processed(mode: str, path: str, matched: bool) -> None:
 def emit_alarm_processing_latency(mode: str, stage: str, latency_ms: float) -> None:
     """Emits alarm processing latency using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_latency(
-        "cortex_alarm_processing_latency_ms",
+        "heron_alarm_processing_latency_ms",
         latency_ms,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -42,7 +42,7 @@ def emit_alarm_processing_latency(mode: str, stage: str, latency_ms: float) -> N
 def emit_alarm_flow_latency(mode: str, stage: str, latency_ms: float) -> None:
     """Emits alarm flow latency using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_latency(
-        "cortex_alarm_flow_latency_ms",
+        "heron_alarm_flow_latency_ms",
         latency_ms,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -53,7 +53,7 @@ def emit_alarm_flow_latency(mode: str, stage: str, latency_ms: float) -> None:
 def emit_backlog_size(mode: str, size: int) -> None:
     """Emits backlog size using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_saturation(
-        "cortex_alarm_backlog_size",
+        "heron_alarm_backlog_size",
         float(max(size, 0)),
         module="processor",
         mode=_label(mode, "unknown"),
@@ -69,7 +69,7 @@ def emit_circuit_breaker_plan(
     """Emits circuit breaker plan using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     limit_str = str(limit) if limit is not None else None
     log_throughput(
-        "cortex_circuit_breaker_plan_count",
+        "heron_circuit_breaker_plan_count",
         1,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -78,21 +78,21 @@ def emit_circuit_breaker_plan(
     )
     if overflow_count > 0:
         log_throughput(
-            "cortex_circuit_breaker_activated_count",
+            "heron_circuit_breaker_activated_count",
             1,
             module="processor",
             mode=_label(mode, "unknown"),
             limit=_label(limit_str, "none"),
         )
     log_saturation(
-        "cortex_circuit_breaker_overflow_size",
+        "heron_circuit_breaker_overflow_size",
         float(max(overflow_count, 0)),
         module="processor",
         mode=_label(mode, "unknown"),
         limit=_label(limit_str, "none"),
     )
     log_saturation(
-        "cortex_circuit_breaker_permitted_size",
+        "heron_circuit_breaker_permitted_size",
         float(max(normal_count, 0)),
         module="processor",
         mode=_label(mode, "unknown"),
@@ -103,7 +103,7 @@ def emit_circuit_breaker_plan(
 def emit_dvm_result(mode: str, matched: bool, group: Optional[str]) -> None:
     """Emits dvm result using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_dvm_evaluated_count",
+        "heron_dvm_evaluated_count",
         1,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -115,7 +115,7 @@ def emit_dvm_result(mode: str, matched: bool, group: Optional[str]) -> None:
 def emit_dvm_latency(mode: str, matched: bool, group: Optional[str], latency_ms: float) -> None:
     """Emits dvm latency using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_latency(
-        "cortex_dvm_evaluation_latency_ms",
+        "heron_dvm_evaluation_latency_ms",
         latency_ms,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -127,7 +127,7 @@ def emit_dvm_latency(mode: str, matched: bool, group: Optional[str], latency_ms:
 def emit_mitigation_attempt_start(mode: str, group: Optional[str], action: Optional[str]) -> None:
     """Emits mitigation attempt start using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_mitigation_attempt_count",
+        "heron_mitigation_attempt_count",
         1,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -140,7 +140,7 @@ def emit_mitigation_attempt_start(mode: str, group: Optional[str], action: Optio
 def emit_mitigation_result(mode: str, group: Optional[str], action: Optional[str], result: str) -> None:
     """Emits mitigation result using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_mitigation_result_count",
+        "heron_mitigation_result_count",
         1,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -159,7 +159,7 @@ def emit_mitigation_latency(
 ) -> None:
     """Emits mitigation latency using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_latency(
-        "cortex_mitigation_latency_ms",
+        "heron_mitigation_latency_ms",
         latency_ms,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -172,7 +172,7 @@ def emit_mitigation_latency(
 def emit_escalation(mode: str, esc_type: str, severity: str, result: str) -> None:
     """Emits escalation using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_escalation_count",
+        "heron_escalation_count",
         1,
         module="processor",
         mode=_label(mode, "unknown"),
@@ -185,7 +185,7 @@ def emit_escalation(mode: str, esc_type: str, severity: str, result: str) -> Non
 def emit_ai_request(mode: Optional[str], result: str, error_type: Optional[str] = None) -> None:
     """Emits ai request using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_ai_request_count",
+        "heron_request_count",
         1,
         module="ai",
         mode=_label(mode, "unknown"),
@@ -197,7 +197,7 @@ def emit_ai_request(mode: Optional[str], result: str, error_type: Optional[str] 
 def emit_ai_latency(mode: Optional[str], latency_ms: float, result: str) -> None:
     """Emits ai latency using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_latency(
-        "cortex_ai_request_latency_ms",
+        "heron_request_latency_ms",
         latency_ms,
         module="ai",
         mode=_label(mode, "unknown"),
@@ -208,7 +208,7 @@ def emit_ai_latency(mode: Optional[str], latency_ms: float, result: str) -> None
 def emit_ai_parse_status(mode: Optional[str], status: str) -> None:
     """Emits ai parse status using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_ai_response_quality_count",
+        "heron_response_quality_count",
         1,
         module="ai",
         mode=_label(mode, "unknown"),
@@ -219,7 +219,7 @@ def emit_ai_parse_status(mode: Optional[str], status: str) -> None:
 def emit_ai_enrichment(mode: Optional[str], status: str) -> None:
     """Emits ai enrichment using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_ai_enrichment_count",
+        "heron_enrichment_count",
         1,
         module="ai",
         mode=_label(mode, "unknown"),
@@ -230,7 +230,7 @@ def emit_ai_enrichment(mode: Optional[str], status: str) -> None:
 def emit_kb_query(result: str, latency_ms: Optional[float] = None, error_type: Optional[str] = None) -> None:
     """Emits kb query using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_kb_query_count",
+        "heron_kb_query_count",
         1,
         module="ai",
         result=_label(result, "unknown"),
@@ -238,7 +238,7 @@ def emit_kb_query(result: str, latency_ms: Optional[float] = None, error_type: O
     )
     if latency_ms is not None:
         log_latency(
-            "cortex_kb_query_latency_ms",
+            "heron_kb_query_latency_ms",
             latency_ms,
             module="ai",
             result=_label(result, "unknown"),
@@ -248,7 +248,7 @@ def emit_kb_query(result: str, latency_ms: Optional[float] = None, error_type: O
 def emit_passive_action_skip(action: str) -> None:
     """Emits passive action skip using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
     log_throughput(
-        "cortex_passive_action_skipped_count",
+        "heron_passive_action_skipped_count",
         1,
         module="jira",
         action=_label(action, "unspecified"),

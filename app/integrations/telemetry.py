@@ -1,4 +1,4 @@
-"""Lightweight T2/AWS Monitoring integration for Cortex.
+"""Lightweight T2/AWS Monitoring integration for Heron.
 
 This mirrors the pattern used in other Python apps:
 - A MonitoringService client that posts metrics to AWS Monitoring (T2)
@@ -48,7 +48,7 @@ class _MonitoringService:
     def __init__(self, cfg: Dict[str, Any]):
         """Initializes instance state using local reads or integration calls and returns a result value, may raise ValueError for bad input while dependency errors may bubble."""
         self.enabled = bool(cfg.get("enabled")) and AWS_AVAILABLE
-        self.namespace = cfg.get("namespace", "cortex")
+        self.namespace = cfg.get("namespace", "heron")
         self.resource_group = cfg.get("resource_group", "")
         self.account_id = cfg.get("account_id", "")
         self.endpoint = cfg.get("endpoint", "")
@@ -285,4 +285,4 @@ def log_health(name: str, is_up: bool, module: str, **dims: str) -> None:
 
 def log_jira_api_call(operation: str, module: str = "jira", **dims: str) -> None:
     """Builds log jira api call using local writes or integration calls and returns None, may raise ValueError for bad input while dependency errors may bubble."""
-    log_throughput("cortex_jira_api_calls_count", 1, module, operation=operation, **dims)
+    log_throughput("heron_jira_api_calls_count", 1, module, operation=operation, **dims)

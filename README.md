@@ -1,8 +1,8 @@
-# Cortex-AI
+# Heron
 
 **Autonomous incident intelligence for SRE and DevOps teams.**
 
-Cortex watches your infrastructure, detects what matters, decides what to do, acts on it, verifies the result, escalates when needed, and — crucially — *remembers everything* so the next incident resolves faster.
+Heron watches your infrastructure, detects what matters, decides what to do, acts on it, verifies the result, escalates when needed, and — crucially — *remembers everything* so the next incident resolves faster.
 
 ---
 
@@ -10,7 +10,7 @@ Cortex watches your infrastructure, detects what matters, decides what to do, ac
 
 Modern infrastructure generates thousands of signals per hour. On-call engineers waste nights triaging noise, recreating runbooks they've already written, and escalating incidents that should have resolved themselves. Mean time to resolution stays stubbornly high not because engineers lack skill, but because institutional knowledge doesn't compound.
 
-Cortex solves this.
+Heron solves this.
 
 ---
 
@@ -36,7 +36,7 @@ Every incident drives the loop. Every loop makes the next one faster.
 
 ## Why Chronicle Is the Moat
 
-Every other observability platform shows you what happened. Cortex remembers *why* you made each decision and *whether it worked*.
+Every other observability platform shows you what happened. Heron remembers *why* you made each decision and *whether it worked*.
 
 Chronicle is a structured incident knowledge base that:
 - Links signals → decisions → actions → outcomes in a queryable timeline
@@ -44,7 +44,7 @@ Chronicle is a structured incident knowledge base that:
 - Feeds past outcomes back into Core's decision ranking
 - Generates postmortems automatically
 
-The longer Cortex runs, the better it gets. That compounding is not replicable by switching tools.
+The longer Heron runs, the better it gets. That compounding is not replicable by switching tools.
 
 ---
 
@@ -109,10 +109,10 @@ flowchart TD
 ### Option A — Demo mode (no infrastructure required)
 
 ```bash
-git clone https://github.com/mzarifyar/cortex-ai-p.git
-cd cortex-ai-p
+git clone https://github.com/mzarifyar/heron-p.git
+cd heron-p
 cp .env.example .env
-echo "CORTEX_DEMO_MODE=true" >> .env
+echo "HERON_DEMO_MODE=true" >> .env
 docker compose up --build
 ```
 
@@ -143,16 +143,16 @@ uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8080
 
 | Variable | Default | Description |
 |---|---|---|
-| `CORTEX_DEMO_MODE` | `false` | Generate synthetic incidents; no real infra needed |
-| `CORTEX_API_PORT` | `8080` | HTTP port |
-| `CORTEX_ENV` | `local` | Environment tag |
-| `CORTEX_REGION` | `us-east-1` | Region tag |
+| `HERON_DEMO_MODE` | `false` | Generate synthetic incidents; no real infra needed |
+| `HERON_API_PORT` | `8080` | HTTP port |
+| `HERON_ENV` | `local` | Environment tag |
+| `HERON_REGION` | `us-east-1` | Region tag |
 | `JIRA_BASE_URL` | — | Your Jira REST API base URL |
 | `JIRA_BEARER_TOKEN` | — | Jira personal access token |
-| `CORTEX_ALERT_SOURCE_HOST` | — | Base URL for alert source HTTP API |
-| `CORTEX_DEVOPS_PORTAL_TARGETS_PATH` | `config/devops_portal_targets.json` | Alert target list |
-| `CORTEX_INGEST_TOKEN` | — | Optional bearer token to protect `/sense/signals` |
-| `CORTEX_PULLERS_SCHEDULER_ENABLED` | — | Override scheduler on/off |
+| `HERON_ALERT_SOURCE_HOST` | — | Base URL for alert source HTTP API |
+| `HERON_DEVOPS_PORTAL_TARGETS_PATH` | `config/devops_portal_targets.json` | Alert target list |
+| `HERON_INGEST_TOKEN` | — | Optional bearer token to protect `/sense/signals` |
+| `HERON_PULLERS_SCHEDULER_ENABLED` | — | Override scheduler on/off |
 
 See [`.env.example`](.env.example) for the full list.
 

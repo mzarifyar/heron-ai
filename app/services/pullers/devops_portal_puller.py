@@ -68,12 +68,12 @@ class DevOpsPortalPuller:
 
     def _base_host(self) -> str:
         """Builds base host using local state or integration calls and returns a string value (e.g., "ok"), may raise ValueError for bad input while dependency errors may bubble."""
-        host = (os.getenv("CORTEX_ALERT_SOURCE_HOST") or os.getenv("CORTEX_DEVOPS_PORTAL_HOST") or DEFAULT_ALERT_SOURCE_HOST).strip().rstrip("/")
+        host = (os.getenv("HERON_ALERT_SOURCE_HOST") or os.getenv("HERON_DEVOPS_PORTAL_HOST") or DEFAULT_ALERT_SOURCE_HOST).strip().rstrip("/")
         return host or DEFAULT_ALERT_SOURCE_HOST
 
     def _request_timeout(self) -> int:
         """Builds request timeout using local state or integration calls and returns an integer value (e.g., 1), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = os.getenv("CORTEX_DEVOPS_PORTAL_TIMEOUT_SECONDS", "20").strip()
+        raw = os.getenv("HERON_DEVOPS_PORTAL_TIMEOUT_SECONDS", "20").strip()
         try:
             timeout = int(raw)
         except ValueError:
@@ -82,7 +82,7 @@ class DevOpsPortalPuller:
 
     def _discover_from_jira_enabled(self) -> bool:
         """Builds discover from jira enabled using local state or integration calls and returns a boolean flag (e.g., True), may raise ValueError for bad input while dependency errors may bubble."""
-        raw = (os.getenv("CORTEX_DEVOPS_PORTAL_DISCOVER_FROM_JIRA") or "true").strip().lower()
+        raw = (os.getenv("HERON_DEVOPS_PORTAL_DISCOVER_FROM_JIRA") or "true").strip().lower()
         return raw in {"1", "true", "yes", "on"}
 
     @staticmethod
@@ -117,11 +117,11 @@ class DevOpsPortalPuller:
 
     def _load_targets(self) -> List[DevOpsTarget]:
         """Loads targets using local reads or integration calls and returns a list result (e.g., []), may raise ValueError for bad input while dependency errors may bubble."""
-        env_targets = (os.getenv("CORTEX_DEVOPS_PORTAL_TARGETS") or "").strip()
+        env_targets = (os.getenv("HERON_DEVOPS_PORTAL_TARGETS") or "").strip()
         if env_targets:
             payload = json.loads(env_targets)
         else:
-            path = Path((os.getenv("CORTEX_DEVOPS_PORTAL_TARGETS_PATH") or DEFAULT_TARGETS_PATH).strip())
+            path = Path((os.getenv("HERON_DEVOPS_PORTAL_TARGETS_PATH") or DEFAULT_TARGETS_PATH).strip())
             if not path.exists():
                 return []
             payload = json.loads(path.read_text(encoding="utf-8"))
@@ -162,7 +162,7 @@ class DevOpsPortalPuller:
         return [target for target in targets if target.enabled]
 
     def _alarm_detail_path(self, region: str, alarm_id: str) -> str:
-        tpl = os.getenv("CORTEX_ALERT_SOURCE_ALARM_DETAIL_PATH", "/api/v1/{region}/alarms/{alarm_id}")
+        tpl = os.getenv("HERON_ALERT_SOURCE_ALARM_DETAIL_PATH", "/api/v1/{region}/alarms/{alarm_id}")
         return tpl.format(region=region, alarm_id=alarm_id)
 
     def _fetch_alarm_details(self, *, region: str, alarm_id: str, token: str) -> Dict[str, Any]:
@@ -299,7 +299,7 @@ class DevOpsPortalPuller:
             params["page"] = page
         params["limit"] = str(max(1, batch_size))
 
-        status_path_tpl = os.getenv("CORTEX_ALERT_SOURCE_STATUS_PATH", "/api/v1/{region}/alarms/status")
+        status_path_tpl = os.getenv("HERON_ALERT_SOURCE_STATUS_PATH", "/api/v1/{region}/alarms/status")
         url = f"{self._base_host()}{status_path_tpl.format(region=region)}"
         response = self._session.get(
             url,

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Cortex Jobs UI{% endblock %}
-{% block header_title %}Cortex Jobs{% endblock %}
+{% block title %}Heron Jobs UI{% endblock %}
+{% block header_title %}Heron Jobs{% endblock %}
 {% block content %}
   <div class="panel stack page-shell">
     <div class="row">
@@ -42,7 +42,7 @@
   <script>
     const startJobUrl = "{{ start_job_url }}";
     const jobPrefix = "{{ job_url_prefix }}";
-    const { getJson, renderKeyValueRows, runButtonAction } = window.CortexUI;
+    const { getJson, renderKeyValueRows, runButtonAction } = window.HeronUI;
     let activeJobId = "";
     let lastResults = [];
     let pollHandle = null;

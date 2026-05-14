@@ -1,7 +1,7 @@
-"""Persistent ticket + association state lifted from the legacy Cortex processor.
+"""Persistent ticket + association state lifted from the legacy Heron processor.
 
 The original project kept runtime artifacts under ``data/`` (outside git).
-We mirror that behavior so ingestion services in Cortex-AI can reuse the
+We mirror that behavior so ingestion services in Heron can reuse the
 established guardrails (ticket store, dvms dedupe map, hourly limits).
 
 """

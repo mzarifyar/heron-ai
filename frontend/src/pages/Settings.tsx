@@ -24,13 +24,13 @@ function GeneralTab() {
   return (
     <div className="space-y-4 mt-4">
       <Card>
-        <CardHeader title="Runtime" subtitle="Current Cortex service configuration" />
+        <CardHeader title="Runtime" subtitle="Current Heron service configuration" />
         <div className="space-y-0">
-          <EnvVar name="CORTEX_ENV" value={health?.environment} />
-          <EnvVar name="CORTEX_API_PORT" value="8080" />
-          <EnvVar name="CORTEX_LOG_LEVEL" value="INFO" />
-          <EnvVar name="CORTEX_TELEMETRY_BUFFER_SIZE" value="512" />
-          <EnvVar name="CORTEX_DEMO_MODE" value="see .env" />
+          <EnvVar name="HERON_ENV" value={health?.environment} />
+          <EnvVar name="HERON_API_PORT" value="8080" />
+          <EnvVar name="HERON_LOG_LEVEL" value="INFO" />
+          <EnvVar name="HERON_TELEMETRY_BUFFER_SIZE" value="512" />
+          <EnvVar name="HERON_DEMO_MODE" value="see .env" />
         </div>
       </Card>
 
@@ -39,8 +39,8 @@ function GeneralTab() {
         <div className="space-y-0">
           <EnvVar name="JIRA_BASE_URL" value="configured" secret />
           <EnvVar name="JIRA_BEARER_TOKEN" value="configured" secret />
-          <EnvVar name="CORTEX_INGEST_TOKEN" value="optional" secret />
-          <EnvVar name="CORTEX_ALERT_SOURCE_HOST" value="optional" />
+          <EnvVar name="HERON_INGEST_TOKEN" value="optional" secret />
+          <EnvVar name="HERON_ALERT_SOURCE_HOST" value="optional" />
           <EnvVar name="OPERATOR_ACCESS_TOKEN" value="optional" secret />
         </div>
       </Card>
@@ -268,7 +268,7 @@ function ControlPlaneTab() {
           subtitle="Region and environment metadata (config/control_plane.json)"
         />
         <p className="text-sm text-zinc-500 mb-4">
-          The control plane defines which regions and environments Cortex manages, and which roles
+          The control plane defines which regions and environments Heron manages, and which roles
           are authorized for each action type.
         </p>
         <div className="space-y-2">

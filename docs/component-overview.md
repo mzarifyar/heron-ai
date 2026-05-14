@@ -1,8 +1,8 @@
-# Cortex Sense Component
+# Heron Sense Component
 
 ## Purpose
 
-Cortex Sense is the entry point for the Cortex-AI signal pipeline. It ingests telemetry from the T2 Metrics Collector, normalizes the payloads, and buffers them for analysis by subsequent components (Insight, Core, etc.). In v1 the buffer is in-memory, optimized for local development and integration testing.
+Heron Sense is the entry point for the Heron signal pipeline. It ingests telemetry from the T2 Metrics Collector, normalizes the payloads, and buffers them for analysis by subsequent components (Insight, Core, etc.). In v1 the buffer is in-memory, optimized for local development and integration testing.
 
 ## Signal schema
 
@@ -64,7 +64,7 @@ Cortex Sense is the entry point for the Cortex-AI signal pipeline. It ingests te
 
 ### Authentication
 
-If `CORTEX_INGEST_TOKEN` is set, clients must provide `Authorization: Bearer <token>` when calling `POST /api/v1/sense/signals`.
+If `HERON_INGEST_TOKEN` is set, clients must provide `Authorization: Bearer <token>` when calling `POST /api/v1/sense/signals`.
 
 ## Running locally
 
