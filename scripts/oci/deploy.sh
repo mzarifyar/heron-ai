@@ -35,11 +35,11 @@ echo "════════════════════════�
 # ── 1. Find Ubuntu 22.04 ARM64 image ─────────────────────────────────────────
 echo ""
 echo "▶ Finding Ubuntu 22.04 ARM64 image..."
+# List platform images from the tenancy (not compartment) — shape filter removed
 IMAGE_ID=$(oci compute image list \
   --compartment-id "$COMPARTMENT" \
   --operating-system "$OS_IMAGE" \
   --operating-system-version "$OS_VERSION" \
-  --shape "$SHAPE" \
   --sort-by TIMECREATED \
   --sort-order DESC \
   --query 'data[0].id' \
