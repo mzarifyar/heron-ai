@@ -84,6 +84,23 @@ def create_app() -> FastAPI:
             name="frontend-assets",
         )
 
+    # Explicit routes for root-level static assets (must come before the catch-all)
+    @app.get("/logo.png", include_in_schema=False)
+    async def _serve_logo() -> FileResponse:
+        logo = FRONTEND_DIST / "logo.png"
+        if logo.exists():
+            return FileResponse(str(logo), media_type="image/png")
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=404, content={"error": "logo not found"})  # type: ignore[return-value]
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def _serve_favicon() -> FileResponse:
+        fav = FRONTEND_DIST / "favicon.ico"
+        if fav.exists():
+            return FileResponse(str(fav), media_type="image/x-icon")
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=404, content={})  # type: ignore[return-value]
+
     # Catch-all: serve React index.html for any non-API, non-legacy path
     @app.get("/{full_path:path}", include_in_schema=False)
     async def _serve_react(full_path: str) -> FileResponse:
