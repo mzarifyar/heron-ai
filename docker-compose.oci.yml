@@ -1,0 +1,65 @@
+# OCI Ampere A1 deployment — Heron on the always-free ARM64 instance.
+# Usage:
+#   docker compose -f docker-compose.oci.yml up -d
+#
+# Prerequisites on the OCI VM:
+#   - Docker + Docker Compose installed (see scripts/oci/deploy.sh)
+#   - .env file present with all required vars
+#   - Instance Principal IAM policy attached (no static OCI keys needed)
+#   - Ports 80 and 443 open in security list
+
+services:
+  heron:
+    image: ghcr.io/${GITHUB_REPO:-zarifyar/heron-ai}:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+      platforms:
+        - linux/arm64
+    container_name: heron
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./docs/runbooks:/app/docs/runbooks:ro
+      - ${HOME}/.kube:/root/.kube:ro
+    ports:
+      - "8080:8080"
+    environment:
+      CORTEX_API_HOST: 0.0.0.0
+      PYTHONUNBUFFERED: "1"
+      # Instance Principals — OCI SDK picks these up automatically on OCI VMs.
+      # No OCI_KEY_FILE or OCI_USER_OCID needed when running on the instance.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  nginx:
+    image: nginx:alpine
+    container_name: heron-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./scripts/oci/nginx.conf:/etc/nginx/conf.d/heron.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      - heron
+
+  certbot:
+    image: certbot/certbot
+    container_name: heron-certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
+    profiles:
+      - ssl   # only starts when --profile ssl is passed
