@@ -42,7 +42,7 @@ export default function Sidebar() {
       )}
     >
       <div className="flex items-center gap-2.5 px-3 py-4 border-b border-zinc-800 min-h-[56px]">
-        <img src="/logo.png" alt="Heron AI" className="w-7 h-7 rounded-md object-cover shrink-0" />
+        <img src="/logo.png" alt="Heron AI" className="h-7 w-auto object-contain shrink-0" style={{ maxWidth: 120 }} />
         {!collapsed && (
           <div className="flex items-baseline gap-[3px] animate-fade-in">
             <span className="font-semibold text-zinc-100 tracking-tight text-sm">Heron</span>
