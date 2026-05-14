@@ -57,3 +57,9 @@ sources:
     #   JAEGER_URL / ZIPKIN_URL / TEMPO_URL — distributed tracing
     enabled: false
     interval_seconds: 30
+  discovery:
+    # Cloud infrastructure discovery (AWS, GCP, Azure, OCI).
+    # Configure AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY for AWS.
+    # Set enabled: true to activate.
+    enabled: true
+    interval_seconds: 300

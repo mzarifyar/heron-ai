@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: 'Heron — Autonomous Incident Intelligence',
   description: 'Heron watches your infrastructure, detects what matters, and acts — before your phone rings. Every incident makes it smarter.',
   metadataBase: new URL('https://heron-ai.net'),
+  icons: {
+    icon: '/heron-icon.svg',
+  },
   openGraph: {
     title: 'Heron — The loop closes itself.',
     description: 'Autonomous incident intelligence for SRE and DevOps teams.',

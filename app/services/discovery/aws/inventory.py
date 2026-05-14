@@ -126,6 +126,21 @@ def _scan_real() -> ScanResult:
     except Exception as exc:
         errors.append(f"Lambda: {exc}")
 
+    # S3 buckets (storage with golden signal metrics: latency, throughput, errors, traffic)
+    try:
+        s3 = _client("s3")
+        buckets = s3.list_buckets().get("Buckets", [])
+        for bucket in buckets:
+            bucket_name = bucket["Name"]
+            result.resources.append(ResourceItem(
+                id=f"arn:aws:s3:::{bucket_name}", name=bucket_name,
+                resource_type="storage", region=region, compartment=account,
+                status="unknown",
+                tags={"bucket": bucket_name},
+            ))
+    except Exception as exc:
+        errors.append(f"S3: {exc}")
+
     # Check CloudWatch alarms to determine monitoring status
     _check_cloudwatch_coverage(result.resources, region)
 

@@ -22,8 +22,9 @@ greenlet>=3.0.3
 # Config / parsing
 pyyaml>=6.0.1
 
-# Kubernetes (optional — only needed for cluster hygiene puller)
+# Cloud SDKs
 kubernetes>=29.0.0
+boto3>=1.26.0
 
 anthropic>=0.40.0
 openai>=1.50.0

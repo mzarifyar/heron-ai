@@ -1,46 +1,15 @@
-# Heron discovery configuration — customer overrides
-# Edit this file to tell Heron about non-standard ports, custom services,
-# and hosts/labels to exclude.  The catalog defaults handle 90% of setups.
-#
-# After editing, run:  POST /api/v1/discovery/connect   to re-scan
-#                      POST /api/v1/discovery/activate  to enable monitoring
-
-version: "1"
-environment: production        # local | dev | staging | prod | production
-cloud: oci                     # oci | aws | gcp | azure
-
-# ── Port / path overrides ────────────────────────────────────────────────────
-# Override catalog defaults for services that run on non-standard config.
+version: '1'
+environment: production
+cloud: aws
 overrides: {}
-# Example:
-#   kafka:
-#     ports: [19092, 19093]
-#   prometheus:
-#     host: 10.0.2.10
-#     port: 9091
-#     path: /internal/metrics
-#     auth:
-#       type: bearer
-#       token_env: PROMETHEUS_TOKEN
-
-# ── Custom services not in the catalog ───────────────────────────────────────
 custom_services: []
-# Example:
-#   - name: payment-metrics-api
-#     host: 10.0.3.50
-#     port: 8765
-#     path: /v1/metrics
-#     format: prometheus
-#     labels:
-#       service: payment-processor
-
-# ── Exclusions ────────────────────────────────────────────────────────────────
 exclusions:
-  hosts: []          # e.g. ["10.0.99.*"]  — CIDR or wildcard patterns
-  labels: {}         # e.g. {environment: dev}  — skip anything tagged with these
-
-# ── Scan settings ─────────────────────────────────────────────────────────────
+  hosts: []
+  labels: {}
 scan:
   timeout_seconds: 30
   port_scan_enabled: false
-  cidr_ranges: []    # e.g. ["10.0.0.0/8"] — subnets to port-scan
+  cidr_ranges: []
+_activated_scan_id: 9dc7683c-e202-4b44-84d4-d1d831f94ca5
+_activated_at: '2026-05-13T06:16:37.189912'
+_activated_resource_count: 8
