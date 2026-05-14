@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Search, Filter, Sparkles } from 'lucide-react'
@@ -100,6 +100,26 @@ export default function Incidents() {
   const [mitigating, setMitigating] = useState<string | null>(null)
   const [mitigateResult, setMitigateResult] = useState<Record<string, unknown> | null>(null)
 
+  // Semantic search state
+  const [semanticResults, setSemanticResults] = useState<null | Array<{
+    id: string; title: string; service: string; severity: string
+    status: string; started_at: string; score: number; auto_healed: boolean
+  }>>(null)
+  const [semanticLoading, setSemanticLoading] = useState(false)
+  const [semanticMode, setSemanticMode] = useState(false)
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const runSemanticSearch = useCallback(async (q: string) => {
+    if (!q.trim()) { setSemanticResults(null); setSemanticMode(false); return }
+    setSemanticLoading(true)
+    try {
+      const resp = await api.get('/api/v1/chronicle/search', { params: { q, limit: 20 } })
+      setSemanticResults(resp.data.results)
+      setSemanticMode(true)
+    } catch { setSemanticResults(null) }
+    finally { setSemanticLoading(false) }
+  }, [])
+
   const mitigate = useMutation({
     mutationFn: (id: string) => api.post(`/api/v1/dashboard/incidents/${id}/mitigate`).then(r => r.data),
     onSuccess: (data) => setMitigateResult(data),
@@ -146,15 +166,52 @@ export default function Incidents() {
 
       {/* Filters */}
       <div className="flex items-center gap-3 px-6 py-3 border-b border-zinc-800">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 max-w-md">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
           <input
             value={search}
-            onChange={(e) => { setSearch(e.target.value); handleFilterChange() }}
-            placeholder="Search incidents…"
-            className="w-full pl-8 pr-3 py-1.5 text-sm bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
+            onChange={(e) => {
+              const v = e.target.value
+              setSearch(v)
+              handleFilterChange()
+              // debounce semantic search — triggers after 600ms pause
+              if (searchDebounce.current) clearTimeout(searchDebounce.current)
+              if (v.length > 3) {
+                searchDebounce.current = setTimeout(() => runSemanticSearch(v), 600)
+              } else {
+                setSemanticResults(null)
+                setSemanticMode(false)
+              }
+            }}
+            placeholder="Search incidents… (semantic search activates automatically)"
+            className={`w-full pl-8 pr-10 py-1.5 text-sm bg-zinc-800 border rounded-lg text-zinc-200 placeholder:text-zinc-500 focus:outline-none transition-colors ${
+              semanticMode ? 'border-violet-500' : 'border-zinc-700 focus:border-violet-500'
+            }`}
           />
+          {/* Semantic indicator */}
+          {semanticLoading && (
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+              <div className="w-3.5 h-3.5 border-2 border-violet-500/30 border-t-violet-400 rounded-full animate-spin" />
+            </div>
+          )}
+          {!semanticLoading && semanticMode && (
+            <button
+              onClick={() => { setSemanticResults(null); setSemanticMode(false) }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-violet-400 hover:text-zinc-400 transition-colors"
+              title="Clear semantic search"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
+
+        {/* Semantic indicator */}
+        {semanticMode && semanticResults !== null && (
+          <span className="text-xs text-violet-400 flex items-center gap-1 shrink-0">
+            <Sparkles className="w-3 h-3" />
+            {semanticResults.length} semantic result{semanticResults.length !== 1 ? 's' : ''}
+          </span>
+        )}
 
         <div className="flex items-center gap-2 text-xs text-zinc-500">
           <Filter className="w-3 h-3" />
@@ -183,15 +240,52 @@ export default function Incidents() {
         </select>
 
         <span className="text-xs text-zinc-500 ml-auto">
-          {filtered.length} incident{filtered.length !== 1 ? 's' : ''}
+          {semanticMode ? `${semanticResults?.length ?? 0} semantic` : `${filtered.length} incident${filtered.length !== 1 ? 's' : ''}`}
         </span>
       </div>
 
-      {isLoading ? (
+      {/* Semantic search results */}
+      {semanticMode && semanticResults !== null && (
+        <div className="px-6 py-4 border-b border-zinc-800 space-y-2">
+          <p className="text-xs text-zinc-500 flex items-center gap-1.5 mb-3">
+            <Sparkles className="w-3 h-3 text-violet-400" />
+            Semantic search — ranked by relevance to <em className="text-zinc-300 not-italic">"{search}"</em>
+            <button onClick={() => { setSemanticResults(null); setSemanticMode(false) }}
+              className="ml-auto text-zinc-600 hover:text-zinc-400 text-xs underline">
+              Clear
+            </button>
+          </p>
+          {semanticResults.length === 0 ? (
+            <p className="text-sm text-zinc-600">No matching incidents found in Chronicle.</p>
+          ) : (
+            semanticResults.map((r) => (
+              <div key={r.id}
+                onClick={() => navigate(`/incidents/${r.id}`)}
+                className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg hover:bg-zinc-800 cursor-pointer transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-zinc-200 truncate font-medium">{r.title}</div>
+                  <div className="text-xs text-zinc-500 mt-0.5">{r.service} · {r.started_at?.slice(0, 10)}</div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant={severityVariant(r.severity)}>{r.severity}</Badge>
+                  <Badge variant={statusVariant(r.status)} dot>{r.status}</Badge>
+                  <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded font-mono">
+                    {(r.score * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Regular table (hidden in semantic mode) */}
+      {!semanticMode && isLoading ? (
         <SkeletonTable rows={8} />
-      ) : error ? (
+      ) : !semanticMode && error ? (
         <ErrorState error={error as Error} onRetry={refetch} />
-      ) : !pageItems.length ? (
+      ) : !semanticMode && !pageItems.length ? (
         <EmptyState
           icon={AlertTriangle}
           title={search || filterSev || filterStatus ? 'No matching incidents' : 'No incidents yet'}

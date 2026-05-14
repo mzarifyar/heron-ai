@@ -401,3 +401,40 @@ def list_near_miss_insights(limit: int = Query(default=100, ge=1, le=1000)) -> d
 def list_tag_insights(limit: int = Query(default=500, ge=1, le=2000)) -> dict:
     """Lists tag insights using local reads or integration calls and returns a dictionary payload (e.g., {"count": 1}), may raise ValueError for bad input while dependency errors may bubble."""
     return chronicle_analytics_service.tag_trends(limit=limit)
+
+# ── Semantic Search ────────────────────────────────────────────────────────────
+
+@router.get("/api/v1/chronicle/search")
+def search_chronicle(
+    q: str = "",
+    limit: int = Query(default=10, ge=1, le=50),
+    semantic: bool = True,
+    service: str = "",
+    severity: str = "",
+    status: str = "",
+) -> dict:
+    """Search Chronicle incident history using BM25 + optional semantic reranking.
+
+    q: natural language query (e.g. "connection pool payment processor")
+    semantic: set false to use BM25 only (faster, no AI required)
+    service / severity / status: optional exact-match filters
+    """
+    from ...services.chronicle_search import chronicle_search
+    filters = {k: v for k, v in {"service": service, "severity": severity, "status": status}.items() if v}
+    results = chronicle_search.search(q, limit=limit, semantic=semantic, filters=filters or None)
+    return {"query": q, "results": results, "count": len(results)}
+
+
+@router.post("/api/v1/chronicle/search/rebuild")
+def rebuild_search_index() -> dict:
+    """Force a full rebuild of the Chronicle search index."""
+    from ...services.chronicle_search import chronicle_search
+    count = chronicle_search.rebuild()
+    return {"ok": True, "doc_count": count}
+
+
+@router.get("/api/v1/chronicle/search/status")
+def search_index_status() -> dict:
+    """Return Chronicle search index status."""
+    from ...services.chronicle_search import chronicle_search
+    return chronicle_search.status()
